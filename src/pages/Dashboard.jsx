@@ -37,7 +37,11 @@ export default function Dashboard() {
 
   return (
     <div>
-      <Header title="BuzzTrk" subtitle={today.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })} />
+      <Header
+        title="BuzzTrk"
+        subtitle={today.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+        showBack={false}
+      />
 
       <section className="px-5 mt-2">
         <p className="text-base-400 text-sm">Spent this month</p>

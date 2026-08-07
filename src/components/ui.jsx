@@ -1,3 +1,28 @@
+import { useNavigate } from 'react-router-dom'
+
+export function BackButton({ fallback = '/', className = '' }) {
+  const navigate = useNavigate()
+  const goBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1)
+    } else {
+      navigate(fallback)
+    }
+  }
+  return (
+    <button
+      type="button"
+      onClick={goBack}
+      aria-label="Go back"
+      className={`w-9 h-9 rounded-full bg-base-800 border border-base-700 flex items-center justify-center text-base-50 shrink-0 active:scale-95 transition-transform ${className}`}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </button>
+  )
+}
+
 export function Card({ children, className = '', style, onClick }) {
   return (
     <div

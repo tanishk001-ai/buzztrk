@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
-import { Button, Card } from '../components/ui'
+import { BackButton, Button, Card } from '../components/ui'
 import { CATEGORIES } from '../lib/categorize'
 
 export default function AddExpense() {
@@ -23,7 +23,10 @@ export default function AddExpense() {
 
   return (
     <div className="px-5 pt-6">
-      <h1 className="font-display text-2xl mb-1">Add cash expense</h1>
+      <div className="flex items-start gap-3 mb-1">
+        <BackButton className="mt-0.5" />
+        <h1 className="font-display text-2xl">Add cash expense</h1>
+      </div>
       <p className="text-base-400 text-sm mb-6">For spending that never shows up in a bank feed.</p>
 
       {saved ? (

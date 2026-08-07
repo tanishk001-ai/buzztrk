@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
-import { Button, Card, formatINR, formatDate } from '../components/ui'
+import { BackButton, Button, Card, formatINR, formatDate } from '../components/ui'
 import { categorize, categoryMeta } from '../lib/categorize'
 
 export default function UploadStatement() {
@@ -38,7 +38,10 @@ export default function UploadStatement() {
 
   return (
     <div className="px-5 pt-6">
-      <h1 className="font-display text-2xl mb-1">Upload statement</h1>
+      <div className="flex items-start gap-3 mb-1">
+        <BackButton className="mt-0.5" />
+        <h1 className="font-display text-2xl">Upload statement</h1>
+      </div>
       <p className="text-base-400 text-sm mb-6">
         This actually parses your PDF in the browser — nothing is uploaded anywhere. It reads dates, amounts and
         narrations, then cleans and categorizes each transaction.

@@ -17,15 +17,13 @@ export default function Wrapped() {
   const touchStartX = useRef(null)
 
   const go = (dir) => {
-    setIndex((i) => {
-      const next = i + dir
-      if (next < 0) return 0
-      if (next >= cards.length) {
-        navigate('/')
-        return i
-      }
-      return next
-    })
+    const next = index + dir
+    if (next < 0) return
+    if (next >= cards.length) {
+      navigate('/')
+      return
+    }
+    setIndex(next)
   }
 
   const onTouchStart = (e) => {
