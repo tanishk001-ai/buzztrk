@@ -3,6 +3,7 @@
 // no real people, no real transactions.
 
 import { categoryMeta } from '../lib/categorize'
+import { splitEqually, avatarColorForIndex } from '../lib/blendLedger'
 
 const D = (y, m, d) => new Date(y, m - 1, d)
 
@@ -75,31 +76,102 @@ export const DUES = [
 ]
 
 // ── Blend: friend group expense tracking (Splitwise-style, no settlement) ──
-export const BLEND_GROUP = {
-  id: 'grp-1',
-  name: 'Weekend Crew',
-  members: [
-    { id: 'me', name: 'You', avatarColor: 'var(--color-cat-food)' },
-    { id: 'arjun', name: 'Arjun', avatarColor: 'var(--color-cat-transport)' },
-    { id: 'priya', name: 'Priya', avatarColor: 'var(--color-cat-shopping)' },
-    { id: 'zoya', name: 'Zoya', avatarColor: 'var(--color-cat-subs)' },
-    { id: 'kabir', name: 'Kabir', avatarColor: 'var(--color-cat-groceries)' },
-  ],
+// ── Blend: multi-group expense tracking (Splitwise/GPay-Groups-style) ──────
+// Each group has its own member list and its own independent ledger — no
+// shared totals across groups. Every ledger entry is either an 'expense'
+// (paidBy + per-person shares, which can be an equal or custom split among
+// a subset of the group) or a 'settlement' (a direct payment between two
+// members recorded to net against prior expense debts). The headline
+// balance shown in the UI is always the *netted* result of these entries
+// (see src/lib/blendLedger.js#computePairNet), never a running list.
+
+function membersFrom(namesWithMe) {
+  return namesWithMe.map((name, i) => ({
+    id: name.toLowerCase() === 'you' ? 'me' : name.toLowerCase(),
+    name,
+    avatarColor: avatarColorForIndex(i),
+  }))
 }
 
-export const BLEND_EXPENSES = [
-  { id: nextId('bx'), date: D(Y, M, 3), title: 'Biryani night', amount: 1600, paidBy: 'me', split: ['me', 'arjun', 'priya', 'zoya'], settled: true },
-  { id: nextId('bx'), date: D(Y, M, 5), title: 'Movie tickets - PVR', amount: 2800, paidBy: 'arjun', split: ['me', 'arjun', 'priya', 'zoya', 'kabir'], settled: false },
-  { id: nextId('bx'), date: D(Y, M, 6), title: 'Cab to Nandi Hills', amount: 1200, paidBy: 'priya', split: ['me', 'priya', 'kabir'], settled: false },
-  { id: nextId('bx'), date: D(Y, M, 7), title: 'Café hangout', amount: 980, paidBy: 'zoya', split: ['me', 'arjun', 'zoya'], settled: false },
-  { id: nextId('bx'), date: D(Y, M, 8), title: 'Concert tickets', amount: 2800, paidBy: 'arjun', split: ['me', 'arjun'], settled: false },
+const weekendCrewMembers = membersFrom(['You', 'Arjun', 'Priya', 'Zoya', 'Kabir'])
+
+export const BLEND_GROUPS = [
+  {
+    id: 'grp-weekend-crew',
+    name: 'Weekend Crew',
+    createdAt: D(Y, M, 1),
+    members: weekendCrewMembers,
+    ledger: [
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 3), description: 'Biryani night', amount: 1600,
+        paidBy: 'me', splitType: 'equal', paymentMethod: 'upi',
+        shares: splitEqually(1600, ['me', 'arjun', 'priya', 'zoya']), // partial split — Kabir sat this one out
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 5), description: 'Movie tickets - PVR', amount: 2800,
+        paidBy: 'arjun', splitType: 'equal', paymentMethod: 'card',
+        shares: splitEqually(2800, ['me', 'arjun', 'priya', 'zoya', 'kabir']),
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 6), description: 'Cab to Nandi Hills', amount: 1200,
+        paidBy: 'priya', splitType: 'equal', paymentMethod: 'upi',
+        shares: splitEqually(1200, ['me', 'priya', 'kabir']), // partial — Arjun and Zoya weren't on this trip
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 7), description: 'Café hangout', amount: 980,
+        paidBy: 'zoya', splitType: 'equal', paymentMethod: 'cash',
+        shares: splitEqually(980, ['me', 'arjun', 'zoya']),
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 7), description: 'Coffee run', amount: 100,
+        paidBy: 'me', splitType: 'equal', paymentMethod: 'cash',
+        shares: splitEqually(100, ['me', 'arjun']),
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 8), description: 'Metro tickets', amount: 80,
+        paidBy: 'arjun', splitType: 'equal', paymentMethod: 'upi',
+        shares: splitEqually(80, ['me', 'arjun']),
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 8), description: 'Grocery run for the trip', amount: 900,
+        paidBy: 'priya', splitType: 'custom', paymentMethod: 'upi',
+        shares: { me: 500, priya: 200, kabir: 200 }, // custom split — 'me' grabbed extra supplies
+      },
+      {
+        id: nextId('bx'), type: 'settlement', date: D(Y, M, 8), from: 'kabir', to: 'priya', amount: 200,
+        note: 'Cab share settled up in cash',
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 8), description: 'Concert tickets', amount: 2800,
+        paidBy: 'arjun', splitType: 'equal', paymentMethod: 'card',
+        shares: splitEqually(2800, ['me', 'arjun']),
+      },
+    ],
+  },
+  {
+    id: 'grp-goa-trip',
+    name: 'Goa Trip',
+    createdAt: D(Y, M, 4),
+    members: membersFrom(['You', 'Arjun', 'Zoya']),
+    ledger: [
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 4), description: 'Flight tickets', amount: 6000,
+        paidBy: 'me', splitType: 'equal', paymentMethod: 'card',
+        shares: splitEqually(6000, ['me', 'arjun', 'zoya']),
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 5), description: 'Hostel booking', amount: 3600,
+        paidBy: 'arjun', splitType: 'equal', paymentMethod: 'upi',
+        shares: splitEqually(3600, ['me', 'arjun', 'zoya']),
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 6), description: 'Scuba diving', amount: 4500,
+        paidBy: 'zoya', splitType: 'equal', paymentMethod: 'card',
+        shares: splitEqually(4500, ['me', 'zoya']), // partial — Arjun opted out
+      },
+    ],
+  },
 ]
-
-// "who pays first / last" streaks — playful, not punitive
-export const BLEND_STATS = {
-  paysFirstStreak: { member: 'priya', count: 4 },
-  paysLastStreak: { member: 'kabir', count: 3 },
-}
 
 // ── Streaks, points & rewards ────────────────────────────────────────────────
 export const STREAK = {

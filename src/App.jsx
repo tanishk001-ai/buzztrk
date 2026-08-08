@@ -5,6 +5,11 @@ import Dashboard from './pages/Dashboard'
 import Budgets from './pages/Budgets'
 import Dues from './pages/Dues'
 import Blend from './pages/Blend'
+import BlendCreateGroup from './pages/BlendCreateGroup'
+import BlendGroup from './pages/BlendGroup'
+import BlendAddExpense from './pages/BlendAddExpense'
+import BlendSettleUp from './pages/BlendSettleUp'
+import BlendHistory from './pages/BlendHistory'
 import Rewards from './pages/Rewards'
 import AddExpense from './pages/AddExpense'
 import UploadStatement from './pages/UploadStatement'
@@ -21,6 +26,11 @@ export default function App() {
             <Route path="/budgets" element={<Budgets />} />
             <Route path="/dues" element={<Dues />} />
             <Route path="/blend" element={<Blend />} />
+            <Route path="/blend/new" element={<BlendCreateGroup />} />
+            <Route path="/blend/:groupId" element={<BlendGroup />} />
+            <Route path="/blend/:groupId/add-expense" element={<BlendAddExpense />} />
+            <Route path="/blend/:groupId/settle-up" element={<BlendSettleUp />} />
+            <Route path="/blend/:groupId/history" element={<BlendHistory />} />
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/add-expense" element={<AddExpense />} />
             <Route path="/upload" element={<UploadStatement />} />

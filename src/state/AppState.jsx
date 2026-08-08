@@ -4,8 +4,7 @@ import {
   CASH_TRANSACTIONS,
   BUDGETS,
   DUES,
-  BLEND_GROUP,
-  BLEND_EXPENSES,
+  BLEND_GROUPS,
   STREAK,
   POINT_EVENTS,
   REWARDS_CATALOG,
@@ -13,14 +12,16 @@ import {
   TODAY,
 } from '../data/mockData'
 import { categoryMeta } from '../lib/categorize'
-import { computeBlendStats } from '../lib/blendStats'
+import { MAX_GROUP_MEMBERS, avatarColorForIndex } from '../lib/blendLedger'
 import { seedTrackedDatesFromHistory, computeStreak, dateKey } from '../lib/streak'
 
 const AppStateContext = createContext(null)
 
 let _cashId = 1
 let _uploadId = 1
-let _blendId = 1
+let _blendEntryId = 1
+let _blendGroupId = 1
+let _blendMemberId = 1
 
 const OVER_BUDGET_PENALTY = 15
 
@@ -58,7 +59,7 @@ export function AppStateProvider({ children }) {
   const [uploadedTxns, setUploadedTxns] = useState([])
   const [budgets, setBudgets] = useState(BUDGETS)
   const [dues, setDues] = useState(DUES)
-  const [blendExpenses, setBlendExpenses] = useState(BLEND_EXPENSES)
+  const [blendGroups, setBlendGroups] = useState(BLEND_GROUPS)
   const [points, setPoints] = useState(STREAK.points)
   const [pointEvents, setPointEvents] = useState(POINT_EVENTS)
   const [redeemed, setRedeemed] = useState([])
@@ -107,13 +108,45 @@ export function AppStateProvider({ children }) {
     [logActivity],
   )
 
-  const settleBlendExpense = useCallback((id) => {
-    setBlendExpenses((prev) => prev.map((e) => (e.id === id ? { ...e, settled: true } : e)))
+  const createBlendGroup = useCallback((name, memberNames) => {
+    const trimmedNames = memberNames.map((n) => n.trim()).filter(Boolean).slice(0, MAX_GROUP_MEMBERS - 1)
+    const members = [
+      { id: 'me', name: 'You', avatarColor: avatarColorForIndex(0) },
+      ...trimmedNames.map((n, i) => ({ id: `m-${_blendMemberId++}`, name: n, avatarColor: avatarColorForIndex(i + 1) })),
+    ]
+    const id = `grp-new-${_blendGroupId++}`
+    setBlendGroups((prev) => [{ id, name: name.trim(), createdAt: TODAY, members, ledger: [] }, ...prev])
+    return id
   }, [])
 
-  const addBlendExpense = useCallback((expense) => {
-    const id = `bx-new-${_blendId++}`
-    setBlendExpenses((prev) => [{ id, date: TODAY, settled: false, ...expense }, ...prev])
+  const addGroupMember = useCallback((groupId, name) => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    setBlendGroups((prev) =>
+      prev.map((g) => {
+        if (g.id !== groupId || g.members.length >= MAX_GROUP_MEMBERS) return g
+        const member = { id: `m-${_blendMemberId++}`, name: trimmed, avatarColor: avatarColorForIndex(g.members.length) }
+        return { ...g, members: [...g.members, member] }
+      }),
+    )
+  }, [])
+
+  const addBlendExpense = useCallback((groupId, expense) => {
+    const id = `bx-new-${_blendEntryId++}`
+    setBlendGroups((prev) =>
+      prev.map((g) =>
+        g.id === groupId ? { ...g, ledger: [{ id, type: 'expense', date: TODAY, ...expense }, ...g.ledger] } : g,
+      ),
+    )
+  }, [])
+
+  const addBlendSettlement = useCallback((groupId, settlement) => {
+    const id = `bs-new-${_blendEntryId++}`
+    setBlendGroups((prev) =>
+      prev.map((g) =>
+        g.id === groupId ? { ...g, ledger: [{ id, type: 'settlement', date: TODAY, ...settlement }, ...g.ledger] } : g,
+      ),
+    )
   }, [])
 
   const markDuePaid = useCallback((id) => {
@@ -184,11 +217,6 @@ export function AppStateProvider({ children }) {
     setLongestStreak((prev) => Math.max(prev, currentStreak))
   }, [currentStreak])
 
-  const blendStats = useMemo(
-    () => computeBlendStats(blendExpenses, BLEND_GROUP.members),
-    [blendExpenses],
-  )
-
   const value = useMemo(
     () => ({
       today: TODAY,
@@ -197,10 +225,11 @@ export function AppStateProvider({ children }) {
       budgets,
       addBudget,
       dues,
-      blendGroup: BLEND_GROUP,
-      blendExpenses,
-      blendStats,
+      blendGroups,
+      createBlendGroup,
+      addGroupMember,
       addBlendExpense,
+      addBlendSettlement,
       points,
       pointEvents,
       streak: { currentStreak, longestStreak, history: streakHistory, todayTracked },
@@ -210,7 +239,6 @@ export function AppStateProvider({ children }) {
       savingsGoal: SAVINGS_GOAL,
       addCashExpense,
       addUploadedTransactions,
-      settleBlendExpense,
       markDuePaid,
       redeemReward,
       earnPoints,
@@ -221,9 +249,11 @@ export function AppStateProvider({ children }) {
       budgets,
       addBudget,
       dues,
-      blendExpenses,
-      blendStats,
+      blendGroups,
+      createBlendGroup,
+      addGroupMember,
       addBlendExpense,
+      addBlendSettlement,
       points,
       pointEvents,
       currentStreak,
@@ -234,7 +264,6 @@ export function AppStateProvider({ children }) {
       savingsProgress,
       addCashExpense,
       addUploadedTransactions,
-      settleBlendExpense,
       markDuePaid,
       redeemReward,
       earnPoints,
