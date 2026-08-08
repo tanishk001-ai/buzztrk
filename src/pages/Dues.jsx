@@ -33,7 +33,15 @@ export default function Dues() {
           sorted.map((d) => {
             const meta = KIND_META[d.kind]
             const days = daysUntil(d.dueDate)
-            const urgent = days <= 3
+            const overdue = days < 0
+            const dueToday = days === 0
+            const urgent = days >= 1 && days <= 3
+            const dateColor = overdue || dueToday || urgent ? 'var(--color-over)' : 'var(--color-base-400)'
+            const timingLabel = overdue
+              ? `Overdue by ${Math.abs(days)}d`
+              : dueToday
+                ? 'Due today'
+                : `${days}d left`
             return (
               <Card key={d.id}>
                 <div className="flex items-center gap-3">
@@ -44,9 +52,16 @@ export default function Dues() {
                     {meta.emoji}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{d.title}</p>
-                    <p className="text-xs mt-0.5" style={{ color: urgent ? 'var(--color-over)' : 'var(--color-base-400)' }}>
-                      Due {formatDate(d.dueDate)} · {days <= 0 ? 'today' : `${days}d left`}
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold truncate">{d.title}</p>
+                      {overdue && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ color: 'var(--color-over)', backgroundColor: 'color-mix(in srgb, var(--color-over) 20%, transparent)' }}>
+                          OVERDUE
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs mt-0.5" style={{ color: dateColor }}>
+                      Due {formatDate(d.dueDate)} · {timingLabel}
                     </p>
                   </div>
                   <p className="font-numeral font-bold text-base shrink-0">{formatINR(d.amount)}</p>

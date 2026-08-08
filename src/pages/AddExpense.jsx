@@ -65,7 +65,7 @@ export default function AddExpense() {
           <div>
             <label className="text-xs font-semibold text-base-400 uppercase tracking-wide">Category</label>
             <div className="flex flex-wrap gap-2 mt-2">
-              {CATEGORIES.filter((c) => c.id !== 'transfers' && c.id !== 'emi' && c.id !== 'other').map((c) => (
+              {CATEGORIES.filter((c) => !['transfers', 'emi', 'other', 'income', 'cash_withdrawal'].includes(c.id)).map((c) => (
                 <button
                   type="button"
                   key={c.id}

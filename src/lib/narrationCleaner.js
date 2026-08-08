@@ -4,7 +4,11 @@
 // ("Swiggy Bangalore") entirely client-side.
 
 const PREFIX_RULES = [
-  /^UPI[/-][\d]+[/-]?/i,
+  // (?![a-zA-Z]) after the digit run keeps this from eating a leading
+  // digit off a merchant name like "1mg" (UPI-1mg Pharmacy -> "1mg
+  // Pharmacy", not "Mg Pharmacy") while still stripping real numeric
+  // reference IDs (UPI/9876543210/... -> stripped).
+  /^UPI[/-][\d]+(?![a-zA-Z])[/-]?/i,
   /^UPI[/-]/i,
   /^UPIREF[/-][\w]+[/-]?/i,
 
@@ -14,7 +18,7 @@ const PREFIX_RULES = [
   /^RTGS[/-]?(?:CR|DR)?[/-][\w]+[/-]?/i,
   /^RTGS[/-]/i,
 
-  /^IMPS[/-][\d]+[/-]?/i,
+  /^IMPS[/-][\d]+(?![a-zA-Z])[/-]?/i,
   /^IMPS[/-]/i,
 
   /^ATM\s+WDL[/-][\w\s]+[/-]?/i,
@@ -40,11 +44,11 @@ const PREFIX_RULES = [
   /^MOB[/-]/i,
 
   /^MMT[/-]/i,
-  /^PHONEPE[/-][\d]+[/-]?/i,
+  /^PHONEPE[/-][\d]+(?![a-zA-Z])[/-]?/i,
   /^PHONEPE[/-]/i,
   /^GPAY[/-]/i,
   /^GOOGLEPAY[/-]/i,
-  /^PAYTM[/-][\d]+[/-]?/i,
+  /^PAYTM[/-][\d]+(?![a-zA-Z])[/-]?/i,
   /^PAYTM[/-]/i,
   /^AMAZON\s*PAY[/-]/i,
 
@@ -69,10 +73,19 @@ const ACRONYMS = new Set([
   'pvt', 'llp', 'opc', 'cr', 'dr',
 ])
 
+function capitalizeWord(w) {
+  if (!w) return w
+  return ACRONYMS.has(w.toLowerCase()) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1).toLowerCase()
+}
+
+// Capitalizes each space-separated word, and each hyphen-joined segment
+// within it (bank narrations often compress two words into one token like
+// "Payment-Landlord" — splitting on whitespace alone would capitalize only
+// the "P" and lowercase the rest, producing "Payment-landlord").
 function title(s) {
   const words = s.trim().split(/\s+/).filter(Boolean)
   return words
-    .map((w) => (ACRONYMS.has(w.toLowerCase()) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1).toLowerCase()))
+    .map((w) => w.split('-').map(capitalizeWord).join('-'))
     .join(' ')
 }
 

@@ -11,7 +11,7 @@ const TONE_COLOR = {
 }
 
 export default function Advice() {
-  const { transactions, budgets } = useAppState()
+  const { transactions, monthSpendByCategory, budgets, dues, today } = useAppState()
   const [insights, setInsights] = useState(null)
 
   return (
@@ -26,7 +26,9 @@ export default function Advice() {
             <p className="text-base-400 text-sm mb-5 max-w-xs">
               Factual, non-judgmental. Just what's actually happening with your money this month.
             </p>
-            <Button onClick={() => setInsights(generateAdvice({ transactions, budgets }))}>Show me</Button>
+            <Button onClick={() => setInsights(generateAdvice({ transactions, monthSpendByCategory, budgets, dues, today }))}>
+              Show me
+            </Button>
           </Card>
         ) : insights.length === 0 ? (
           <EmptyState emoji="✅" title="Nothing to flag" sub="Your spending looks steady this month." />

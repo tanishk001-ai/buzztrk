@@ -18,7 +18,8 @@ const MONTH_MAP = {
 
 const DATE_PATTERNS = [
   { re: /^(\d{2})[/\-.](\d{2})[/\-.](\d{4})$/, kind: 'dmY' },
-  { re: /^(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{4})$/i, kind: 'dmmmY' },
+  // "5 Aug 2026", "05-Aug-2026", "05/Aug/2026" — space, dash, or slash between parts
+  { re: /^(\d{1,2})[\s\-/]+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s\-/]+(\d{4})$/i, kind: 'dmmmY' },
   { re: /^(\d{4})[/\-.](\d{2})[/\-.](\d{2})$/, kind: 'Ymd' },
   { re: /^(\d{2})[/\-.](\d{2})[/\-.](\d{2})$/, kind: 'dmy' },
 ]
@@ -183,7 +184,7 @@ function extractFromTableRows(dataRows, columnMap) {
 }
 
 // ── Regex line fallback (ports parser.py `_extract_from_text`) ─────────────
-const LINE_RE = /^(\d{2}[/\-.]\d{2}[/\-.]\d{2,4}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{4}|\d{4}[/\-.]\d{2}[/\-.]\d{2})\s+(.+)$/i
+const LINE_RE = /^(\d{2}[/\-.]\d{2}[/\-.]\d{2,4}|\d{1,2}[\s\-/]+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*[\s\-/]+\d{4}|\d{4}[/\-.]\d{2}[/\-.]\d{2})\s+(.+)$/i
 const AMOUNT_RE = /[\d,]+\.\d{2}/g
 
 function extractFromTextLine(line) {

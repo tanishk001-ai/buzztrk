@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
-import { Card, Button, SectionTitle, Coin, formatDate } from '../components/ui'
+import { Card, Button, ProgressBar, SectionTitle, Coin, formatINR, formatDate } from '../components/ui'
 
 export default function Rewards() {
-  const { streak, points, pointEvents, rewardsCatalog, redeemed, redeemReward } = useAppState()
+  const { streak, points, pointEvents, rewardsCatalog, redeemed, redeemReward, savingsProgress, savingsGoal } =
+    useAppState()
   const [justRedeemed, setJustRedeemed] = useState(null)
 
   const handleRedeem = (reward) => {
@@ -43,6 +44,11 @@ export default function Rewards() {
             />
           ))}
         </div>
+        {!streak.todayTracked && (
+          <p className="text-xs mt-2" style={{ color: 'var(--color-warn)' }}>
+            Log a cash expense or import a statement today to keep your streak going.
+          </p>
+        )}
       </section>
 
       <section className="px-5 mt-6">
@@ -54,6 +60,23 @@ export default function Rewards() {
           </div>
         </Card>
       </section>
+
+      {savingsProgress > 0 && (
+        <section className="px-5 mt-4">
+          <Card>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold">🐷 {savingsGoal.title}</span>
+              <span className="text-xs text-base-400">
+                {formatINR(savingsProgress)} / {formatINR(savingsGoal.target)}
+              </span>
+            </div>
+            <ProgressBar pct={Math.round((savingsProgress / savingsGoal.target) * 100)} color="var(--color-income)" />
+            <p className="text-base-400 text-xs mt-2">
+              Symbolic — points redeemed toward this goal, not a real transfer.
+            </p>
+          </Card>
+        </section>
+      )}
 
       <section className="px-5 mt-6">
         <SectionTitle>Redeem</SectionTitle>
@@ -90,7 +113,13 @@ export default function Rewards() {
                 <p className="text-sm font-medium">{e.label}</p>
                 <p className="text-xs text-base-400">{formatDate(e.date)}</p>
               </div>
-              <p className="font-numeral text-sm font-bold text-cat-groceries">+{e.points}</p>
+              <p
+                className="font-numeral text-sm font-bold"
+                style={{ color: e.points < 0 ? 'var(--color-over)' : 'var(--color-cat-groceries)' }}
+              >
+                {e.points > 0 ? '+' : ''}
+                {e.points}
+              </p>
             </div>
           ))}
         </Card>

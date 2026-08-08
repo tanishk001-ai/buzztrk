@@ -5,33 +5,21 @@ import Header from '../components/Header'
 import { Card, SectionTitle, formatINR, formatDate } from '../components/ui'
 import { categoryMeta } from '../lib/categorize'
 
-function startOfMonth(d) {
-  return new Date(d.getFullYear(), d.getMonth(), 1)
-}
-
 export default function Dashboard() {
-  const { transactions, today } = useAppState()
-
-  const monthTxns = useMemo(() => {
-    const start = startOfMonth(today)
-    return transactions.filter((t) => t.date >= start && t.date <= today)
-  }, [transactions, today])
+  const { transactions, monthSpendByCategory, today } = useAppState()
 
   const totalSpend = useMemo(
-    () => monthTxns.filter((t) => t.type === 'debit').reduce((s, t) => s + t.amount, 0),
-    [monthTxns],
+    () => Object.values(monthSpendByCategory).reduce((s, v) => s + v, 0),
+    [monthSpendByCategory],
   )
 
-  const byCategory = useMemo(() => {
-    const map = {}
-    for (const t of monthTxns) {
-      if (t.type !== 'debit') continue
-      map[t.category] = (map[t.category] || 0) + t.amount
-    }
-    return Object.entries(map)
-      .map(([category, amount]) => ({ category, amount }))
-      .sort((a, b) => b.amount - a.amount)
-  }, [monthTxns])
+  const byCategory = useMemo(
+    () =>
+      Object.entries(monthSpendByCategory)
+        .map(([category, amount]) => ({ category, amount }))
+        .sort((a, b) => b.amount - a.amount),
+    [monthSpendByCategory],
+  )
 
   const recent = transactions.slice(0, 8)
 
@@ -110,7 +98,7 @@ export default function Dashboard() {
                   className="w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0"
                   style={{ backgroundColor: `color-mix(in srgb, ${meta.color} 25%, transparent)` }}
                 >
-                  {t.type === 'credit' ? '💰' : meta.emoji}
+                  {meta.emoji}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{t.description}</p>
@@ -118,7 +106,10 @@ export default function Dashboard() {
                     {formatDate(t.date)} · {t.source === 'auto' ? 'Auto-collected' : t.source === 'cash' ? 'Cash entry' : 'Statement'}
                   </p>
                 </div>
-                <p className={`font-numeral text-sm font-bold shrink-0 ${t.type === 'credit' ? 'text-cat-groceries' : 'text-base-50'}`}>
+                <p
+                  className="font-numeral text-sm font-bold shrink-0"
+                  style={{ color: t.type === 'credit' ? 'var(--color-income)' : 'var(--color-base-50)' }}
+                >
                   {t.type === 'credit' ? '+' : '-'}
                   {formatINR(t.amount)}
                 </p>

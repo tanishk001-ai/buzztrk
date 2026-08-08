@@ -2,6 +2,8 @@
 // Everything here is fabricated for demo purposes — no real accounts,
 // no real people, no real transactions.
 
+import { categoryMeta } from '../lib/categorize'
+
 const D = (y, m, d) => new Date(y, m - 1, d)
 
 // "Today" is pinned so the prototype always tells the same story:
@@ -69,6 +71,7 @@ export const DUES = [
   { id: nextId('due'), kind: 'bnpl', title: 'Slice - Bill Due', amount: 1200, dueDate: D(Y, M, 10), recurring: false },
   { id: nextId('due'), kind: 'owed', title: 'Owe Arjun for concert tickets', amount: 700, dueDate: D(Y, M, 14), recurring: false },
   { id: nextId('due'), kind: 'owed', title: 'Owe Priya - dinner split', amount: 340, dueDate: D(Y, M, 9), recurring: false },
+  { id: nextId('due'), kind: 'owed', title: 'Owe Kabir - petrol split', amount: 150, dueDate: D(Y, M, 5), recurring: false },
 ]
 
 // ── Blend: friend group expense tracking (Splitwise-style, no settlement) ──
@@ -112,13 +115,22 @@ export const POINT_EVENTS = [
   { id: nextId('pt'), label: 'Reviewed weekly spend summary', points: 20, date: D(Y, M, 5) },
 ]
 
+// Deliberately no cash-value vouchers or brand coupons here — redeeming
+// spending power would contradict a tool whose whole point is helping users
+// avoid impulsive spend. Rewards are merch, cosmetic flair, or a symbolic
+// boost toward the user's own savings goal (never a real money transfer).
 export const REWARDS_CATALOG = [
-  { id: 'rw-1', title: 'BuzzTrk Sticker Pack', cost: 200, emoji: '✨' },
-  { id: 'rw-2', title: '₹100 Zepto Voucher', cost: 900, emoji: '🛒' },
-  { id: 'rw-3', title: 'BuzzTrk Tote Bag', cost: 1200, emoji: '👜' },
-  { id: 'rw-4', title: '₹250 BookMyShow Voucher', cost: 2000, emoji: '🎬' },
-  { id: 'rw-5', title: 'Limited Coin Badge', cost: 500, emoji: '🪙' },
+  { id: 'rw-1', title: 'BuzzTrk Sticker Pack', cost: 200, emoji: '✨', type: 'merch' },
+  { id: 'rw-2', title: 'Coin Badge — Profile Flair', cost: 500, emoji: '🪙', type: 'flair' },
+  { id: 'rw-3', title: 'Neon App Theme Unlock', cost: 700, emoji: '🌈', type: 'flair' },
+  { id: 'rw-4', title: 'Savings Goal Boost +₹500', cost: 900, emoji: '🐷', type: 'savings', savingsAmount: 500 },
+  { id: 'rw-5', title: 'BuzzTrk Tote Bag', cost: 1200, emoji: '👜', type: 'merch' },
 ]
+
+export const SAVINGS_GOAL = {
+  title: 'New Laptop Fund',
+  target: 5000,
+}
 
 // ── Wrapped-style annual recap (mock, generated once a year) ────────────────
 export const WRAPPED_2025 = {
@@ -135,36 +147,60 @@ export const WRAPPED_2025 = {
 }
 
 // ── Advice (opt-in only, factual & non-judgmental, Cred-style) ─────────────
-export function generateAdvice({ transactions, budgets }) {
+// Every insight here is computed from the live transactions/budgets/dues
+// passed in (not the static seed arrays above) so it stays accurate as the
+// user marks dues paid, adds budgets, or logs expenses. Nothing is shown
+// unless it's actually true of the current data — this can legitimately
+// return an empty list.
+export function generateAdvice({ transactions, monthSpendByCategory, budgets, dues, today }) {
   const insights = []
-  const spendByCat = {}
-  for (const t of transactions) {
-    if (t.type === 'credit') continue
-    spendByCat[t.category] = (spendByCat[t.category] || 0) + t.amount
-  }
+
   for (const b of budgets) {
-    const spent = spendByCat[b.category] || 0
+    const spent = monthSpendByCategory[b.category] || 0
     const pct = Math.round((spent / b.limit) * 100)
     if (pct >= 90) {
+      const label = categoryMeta(b.category).label
       insights.push({
         id: `adv-${b.category}`,
         tone: pct >= 100 ? 'over' : 'warn',
-        text: `You've used ${pct}% of your ${b.category} budget this month — ₹${spent} of ₹${b.limit}.`,
+        text: `You've used ${pct}% of your ${label} budget this month — ₹${spent} of ₹${b.limit}.`,
       })
     }
   }
-  const dueTotal = DUES.reduce((s, d) => s + d.amount, 0)
+
+  const upcomingDues = dues.filter((d) => (d.dueDate - today) / (1000 * 60 * 60 * 24) <= 14)
+  const dueTotal = upcomingDues.reduce((s, d) => s + d.amount, 0)
   if (dueTotal > 0) {
     insights.push({
       id: 'adv-dues',
       tone: 'neutral',
-      text: `You have ₹${dueTotal} in upcoming EMIs and dues over the next 2 weeks — worth setting aside now.`,
+      text: `You have ₹${dueTotal} in EMIs and dues coming up in the next 2 weeks — worth setting aside now.`,
     })
   }
-  insights.push({
-    id: 'adv-pattern',
-    tone: 'neutral',
-    text: 'Most of your spend this month landed in the first week — pacing it across the month could ease the last-week squeeze.',
-  })
+
+  // First-week pacing — only surfaced when it's actually true of this
+  // month's data, not shown as a generic tip regardless of pattern.
+  const start = new Date(today.getFullYear(), today.getMonth(), 1)
+  const weekEnd = new Date(start)
+  weekEnd.setDate(weekEnd.getDate() + 6)
+  let weekSpend = 0
+  let totalSpend = 0
+  for (const t of transactions) {
+    if (t.type !== 'debit' || t.date < start || t.date > today) continue
+    totalSpend += t.amount
+    if (t.date <= weekEnd) weekSpend += t.amount
+  }
+  const daysSoFar = today.getDate()
+  if (totalSpend > 0 && daysSoFar >= 8) {
+    const sharePct = weekSpend / totalSpend
+    if (sharePct >= 0.5) {
+      insights.push({
+        id: 'adv-pattern',
+        tone: 'neutral',
+        text: `${Math.round(sharePct * 100)}% of this month's spend (₹${weekSpend} of ₹${totalSpend}) happened in the first week — pacing it out could ease the squeeze later in the month.`,
+      })
+    }
+  }
+
   return insights
 }

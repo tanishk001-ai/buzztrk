@@ -24,7 +24,11 @@
   --color-cat-health:    #7FE07F;  /* health */
   --color-cat-transfers: #9AA5FF;  /* p2p transfers */
   --color-cat-emi:       #FF7A7A;  /* EMI / loan */
+  --color-cat-cash:      #7C8CA6;  /* ATM/cash withdrawal — neutral, not a spend category */
   --color-cat-other:     #A8ADB8;  /* uncategorized */
+
+  /* Income — deliberately its own hue, never mixed with spend categories */
+  --color-income: #8CFF6B;
 
   /* Signature gradient — reserved only for Wrapped / milestone moments */
   --color-wrap-1: #FF6B5E;

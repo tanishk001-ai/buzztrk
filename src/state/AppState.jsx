@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, useCallback } from 'react'
+import { createContext, useContext, useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import {
   AUTO_TRANSACTIONS,
   CASH_TRANSACTIONS,
@@ -6,17 +6,23 @@ import {
   DUES,
   BLEND_GROUP,
   BLEND_EXPENSES,
-  BLEND_STATS,
   STREAK,
   POINT_EVENTS,
   REWARDS_CATALOG,
+  SAVINGS_GOAL,
   TODAY,
 } from '../data/mockData'
+import { categoryMeta } from '../lib/categorize'
+import { computeBlendStats } from '../lib/blendStats'
+import { seedTrackedDatesFromHistory, computeStreak, dateKey } from '../lib/streak'
 
 const AppStateContext = createContext(null)
 
 let _cashId = 1
 let _uploadId = 1
+let _blendId = 1
+
+const OVER_BUDGET_PENALTY = 15
 
 function normalizeAuto() {
   return AUTO_TRANSACTIONS.map((t, i) => ({
@@ -42,52 +48,94 @@ function normalizeCash() {
   }))
 }
 
+function startOfMonth(d) {
+  return new Date(d.getFullYear(), d.getMonth(), 1)
+}
+
 export function AppStateProvider({ children }) {
   const [autoTxns] = useState(normalizeAuto)
   const [cashTxns, setCashTxns] = useState(normalizeCash)
   const [uploadedTxns, setUploadedTxns] = useState([])
-  const [budgets] = useState(BUDGETS)
+  const [budgets, setBudgets] = useState(BUDGETS)
   const [dues, setDues] = useState(DUES)
   const [blendExpenses, setBlendExpenses] = useState(BLEND_EXPENSES)
   const [points, setPoints] = useState(STREAK.points)
   const [pointEvents, setPointEvents] = useState(POINT_EVENTS)
   const [redeemed, setRedeemed] = useState([])
+  const [savingsProgress, setSavingsProgress] = useState(0)
+  const [trackedDates, setTrackedDates] = useState(() => seedTrackedDatesFromHistory(STREAK.history, TODAY))
+  const [longestStreak, setLongestStreak] = useState(STREAK.longestStreak)
 
-  const addCashExpense = useCallback((expense) => {
-    const id = `cash-new-${_cashId++}`
-    setCashTxns((prev) => [
-      { id, source: 'cash', date: expense.date, description: expense.description, amount: expense.amount, category: expense.category, type: 'debit' },
-      ...prev,
-    ])
+  const penalizedCategoriesRef = useRef(new Set())
+
+  const logActivity = useCallback(() => {
+    setTrackedDates((prev) => {
+      const key = dateKey(TODAY)
+      if (prev.has(key)) return prev
+      const next = new Set(prev)
+      next.add(key)
+      return next
+    })
   }, [])
 
-  const addUploadedTransactions = useCallback((txns) => {
-    const withIds = txns.map((t) => ({
-      id: `upload-${_uploadId++}`,
-      source: 'statement',
-      date: t.date,
-      description: t.description,
-      amount: t.debit > 0 ? t.debit : t.credit,
-      category: t.category,
-      type: t.debit > 0 ? 'debit' : 'credit',
-    }))
-    setUploadedTxns((prev) => [...withIds, ...prev])
-  }, [])
+  const addCashExpense = useCallback(
+    (expense) => {
+      const id = `cash-new-${_cashId++}`
+      setCashTxns((prev) => [
+        { id, source: 'cash', date: expense.date, description: expense.description, amount: expense.amount, category: expense.category, type: 'debit' },
+        ...prev,
+      ])
+      logActivity()
+    },
+    [logActivity],
+  )
+
+  const addUploadedTransactions = useCallback(
+    (txns) => {
+      const withIds = txns.map((t) => ({
+        id: `upload-${_uploadId++}`,
+        source: 'statement',
+        date: t.date,
+        description: t.description,
+        amount: t.debit > 0 ? t.debit : t.credit,
+        category: t.category,
+        type: t.debit > 0 ? 'debit' : 'credit',
+      }))
+      setUploadedTxns((prev) => [...withIds, ...prev])
+      logActivity()
+    },
+    [logActivity],
+  )
 
   const settleBlendExpense = useCallback((id) => {
     setBlendExpenses((prev) => prev.map((e) => (e.id === id ? { ...e, settled: true } : e)))
+  }, [])
+
+  const addBlendExpense = useCallback((expense) => {
+    const id = `bx-new-${_blendId++}`
+    setBlendExpenses((prev) => [{ id, date: TODAY, settled: false, ...expense }, ...prev])
   }, [])
 
   const markDuePaid = useCallback((id) => {
     setDues((prev) => prev.filter((d) => d.id !== id))
   }, [])
 
-  const redeemReward = useCallback((reward) => {
-    if (points < reward.cost) return false
-    setPoints((p) => p - reward.cost)
-    setRedeemed((prev) => [...prev, reward.id])
-    return true
-  }, [points])
+  const addBudget = useCallback((category, limit) => {
+    setBudgets((prev) => (prev.some((b) => b.category === category) ? prev : [...prev, { category, limit }]))
+  }, [])
+
+  const redeemReward = useCallback(
+    (reward) => {
+      if (points < reward.cost) return false
+      setPoints((p) => p - reward.cost)
+      setRedeemed((prev) => [...prev, reward.id])
+      if (reward.type === 'savings' && reward.savingsAmount) {
+        setSavingsProgress((s) => s + reward.savingsAmount)
+      }
+      return true
+    },
+    [points],
+  )
 
   const earnPoints = useCallback((amount, label) => {
     setPoints((p) => p + amount)
@@ -99,20 +147,67 @@ export function AppStateProvider({ children }) {
     [autoTxns, cashTxns, uploadedTxns],
   )
 
+  const monthSpendByCategory = useMemo(() => {
+    const start = startOfMonth(TODAY)
+    const map = {}
+    for (const t of transactions) {
+      if (t.type !== 'debit' || t.date < start || t.date > TODAY) continue
+      map[t.category] = (map[t.category] || 0) + t.amount
+    }
+    return map
+  }, [transactions])
+
+  // Real point-loss on going over budget — deducted once per category per
+  // month (tracked in a ref, not state, since it's bookkeeping rather than
+  // something the UI renders directly) rather than on every render.
+  useEffect(() => {
+    for (const b of budgets) {
+      const spent = monthSpendByCategory[b.category] || 0
+      if (spent > b.limit && !penalizedCategoriesRef.current.has(b.category)) {
+        penalizedCategoriesRef.current.add(b.category)
+        const label = categoryMeta(b.category).label
+        setPoints((p) => p - OVER_BUDGET_PENALTY)
+        setPointEvents((prev) => [
+          { id: `pt-penalty-${b.category}`, label: `Went over ${label} budget`, points: -OVER_BUDGET_PENALTY, date: TODAY },
+          ...prev,
+        ])
+      }
+    }
+  }, [monthSpendByCategory, budgets])
+
+  const { history: streakHistory, currentStreak, todayTracked } = useMemo(
+    () => computeStreak(trackedDates, TODAY),
+    [trackedDates],
+  )
+
+  useEffect(() => {
+    setLongestStreak((prev) => Math.max(prev, currentStreak))
+  }, [currentStreak])
+
+  const blendStats = useMemo(
+    () => computeBlendStats(blendExpenses, BLEND_GROUP.members),
+    [blendExpenses],
+  )
+
   const value = useMemo(
     () => ({
       today: TODAY,
       transactions,
+      monthSpendByCategory,
       budgets,
+      addBudget,
       dues,
       blendGroup: BLEND_GROUP,
       blendExpenses,
-      blendStats: BLEND_STATS,
+      blendStats,
+      addBlendExpense,
       points,
       pointEvents,
-      streak: STREAK,
+      streak: { currentStreak, longestStreak, history: streakHistory, todayTracked },
       rewardsCatalog: REWARDS_CATALOG,
       redeemed,
+      savingsProgress,
+      savingsGoal: SAVINGS_GOAL,
       addCashExpense,
       addUploadedTransactions,
       settleBlendExpense,
@@ -120,7 +215,30 @@ export function AppStateProvider({ children }) {
       redeemReward,
       earnPoints,
     }),
-    [transactions, budgets, dues, blendExpenses, points, pointEvents, redeemed, addCashExpense, addUploadedTransactions, settleBlendExpense, markDuePaid, redeemReward, earnPoints],
+    [
+      transactions,
+      monthSpendByCategory,
+      budgets,
+      addBudget,
+      dues,
+      blendExpenses,
+      blendStats,
+      addBlendExpense,
+      points,
+      pointEvents,
+      currentStreak,
+      longestStreak,
+      streakHistory,
+      todayTracked,
+      redeemed,
+      savingsProgress,
+      addCashExpense,
+      addUploadedTransactions,
+      settleBlendExpense,
+      markDuePaid,
+      redeemReward,
+      earnPoints,
+    ],
   )
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>

@@ -1,25 +1,28 @@
-import { useMemo } from 'react'
+import { useState } from 'react'
 import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
-import { Card, ProgressBar, formatINR } from '../components/ui'
-import { categoryMeta } from '../lib/categorize'
+import { Button, Card, ProgressBar, formatINR } from '../components/ui'
+import { CATEGORIES, categoryMeta } from '../lib/categorize'
 
-function startOfMonth(d) {
-  return new Date(d.getFullYear(), d.getMonth(), 1)
-}
+const EXCLUDED_FROM_BUDGETS = ['income', 'cash_withdrawal', 'transfers', 'emi', 'other']
 
 export default function Budgets() {
-  const { transactions, budgets, today } = useAppState()
+  const { monthSpendByCategory, budgets, addBudget } = useAppState()
+  const [adding, setAdding] = useState(false)
+  const [newCategory, setNewCategory] = useState('')
+  const [newLimit, setNewLimit] = useState('')
 
-  const spendByCategory = useMemo(() => {
-    const start = startOfMonth(today)
-    const map = {}
-    for (const t of transactions) {
-      if (t.type !== 'debit' || t.date < start || t.date > today) continue
-      map[t.category] = (map[t.category] || 0) + t.amount
-    }
-    return map
-  }, [transactions, today])
+  const budgetedIds = new Set(budgets.map((b) => b.category))
+  const availableCategories = CATEGORIES.filter((c) => !EXCLUDED_FROM_BUDGETS.includes(c.id) && !budgetedIds.has(c.id))
+
+  const submitNewBudget = (e) => {
+    e.preventDefault()
+    if (!newCategory || !newLimit || Number(newLimit) <= 0) return
+    addBudget(newCategory, Number(newLimit))
+    setNewCategory('')
+    setNewLimit('')
+    setAdding(false)
+  }
 
   return (
     <div>
@@ -28,7 +31,7 @@ export default function Budgets() {
       <section className="px-5 mt-4 space-y-3">
         {budgets.map((b) => {
           const meta = categoryMeta(b.category)
-          const spent = spendByCategory[b.category] || 0
+          const spent = monthSpendByCategory[b.category] || 0
           const pct = Math.round((spent / b.limit) * 100)
           const status = pct >= 100 ? 'over' : pct >= 80 ? 'warn' : 'good'
           const statusLabel = status === 'over' ? 'Over budget' : status === 'warn' ? 'Almost there' : 'On track'
@@ -52,9 +55,71 @@ export default function Budgets() {
                 </p>
                 <p className="text-xs text-base-400">{pct}%</p>
               </div>
+              {status === 'over' && <p className="text-xs mt-2" style={{ color: 'var(--color-over)' }}>−15 pts applied for going over</p>}
             </Card>
           )
         })}
+
+        {adding ? (
+          <Card>
+            <form onSubmit={submitNewBudget} className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-base-400 uppercase tracking-wide">Category</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {availableCategories.map((c) => (
+                    <button
+                      type="button"
+                      key={c.id}
+                      onClick={() => setNewCategory(c.id)}
+                      className="px-3 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 border transition-colors"
+                      style={{
+                        borderColor: newCategory === c.id ? c.color : 'var(--color-base-700)',
+                        backgroundColor: newCategory === c.id ? `color-mix(in srgb, ${c.color} 20%, transparent)` : 'transparent',
+                        color: newCategory === c.id ? c.color : 'var(--color-base-200)',
+                      }}
+                    >
+                      <span>{c.emoji}</span>
+                      {c.label}
+                    </button>
+                  ))}
+                  {availableCategories.length === 0 && (
+                    <p className="text-base-400 text-sm">Every category already has a budget.</p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-base-400 uppercase tracking-wide">Monthly limit</label>
+                <div className="flex items-center gap-2 mt-2 bg-base-900 border border-base-700 rounded-2xl px-4 py-3 focus-within:border-cat-groceries">
+                  <span className="text-base-400 font-numeral text-lg">₹</span>
+                  <input
+                    inputMode="numeric"
+                    value={newLimit}
+                    onChange={(e) => setNewLimit(e.target.value.replace(/[^\d]/g, ''))}
+                    placeholder="0"
+                    className="w-full bg-transparent outline-none font-numeral text-lg"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button type="button" variant="ghost" className="flex-1" onClick={() => setAdding(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="flex-1" disabled={!newCategory || !newLimit}>
+                  Add budget
+                </Button>
+              </div>
+            </form>
+          </Card>
+        ) : (
+          availableCategories.length > 0 && (
+            <button
+              onClick={() => setAdding(true)}
+              className="w-full border-2 border-dashed border-base-700 rounded-[1.75rem] py-4 text-sm font-semibold text-base-400 active:scale-[0.98] transition-transform"
+            >
+              ＋ Add a budget category
+            </button>
+          )
+        )}
       </section>
     </div>
   )

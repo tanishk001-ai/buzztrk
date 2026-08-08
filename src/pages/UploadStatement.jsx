@@ -19,7 +19,10 @@ export default function UploadStatement() {
     try {
       const { parseStatementPdf } = await import('../lib/statementParser')
       const { transactions, accountDisplay } = await parseStatementPdf(file)
-      const categorized = transactions.map((t) => ({ ...t, category: categorize(t.description) }))
+      const categorized = transactions.map((t) => ({
+        ...t,
+        category: categorize(t.description, t.credit > 0 ? 'credit' : 'debit'),
+      }))
       setResult({ transactions: categorized, accountDisplay, fileName: file.name })
       setStatus('done')
     } catch (err) {
