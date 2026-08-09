@@ -4,9 +4,16 @@ import { useAppState } from '../state/AppState'
 import { BackButton, Card, Avatar, SectionTitle, EmptyState, formatINR, formatDate } from '../components/ui'
 import { computePairNet, computeBalancesFor, computeOverallNet, paymentMethodMeta } from '../lib/blendLedger'
 import { computeBlendFunStats } from '../lib/blendStats'
+import { computeBlendVibes } from '../lib/blendVibes'
 
 function memberById(members, id) {
   return members.find((m) => m.id === id)
+}
+
+// "You" is grammatically second-person plural ("You are"), everyone else
+// is third-person singular ("Arjun is") — avoids "You is The Sponsor".
+function subjectIs(memberId, name) {
+  return memberId === 'me' ? 'You are' : `${name} is`
 }
 
 export default function BlendGroup() {
@@ -19,7 +26,56 @@ export default function BlendGroup() {
   const myNet = useMemo(() => computeOverallNet('me', pairNet), [pairNet])
   const otherPairs = useMemo(() => pairNet.filter(({ a, b }) => a !== 'me' && b !== 'me'), [pairNet])
   const funStats = useMemo(() => (group ? computeBlendFunStats(group.ledger, group.members) : null), [group])
+  const vibes = useMemo(() => (group ? computeBlendVibes(group.ledger, group.members) : null), [group])
   const recent = useMemo(() => (group ? [...group.ledger].sort((a, b) => b.date - a.date).slice(0, 5) : []), [group])
+
+  const badges = useMemo(() => {
+    if (!group) return []
+    const list = []
+    if (funStats?.paysFirstStreak) {
+      list.push({
+        emoji: '⚡',
+        title: `${memberById(group.members, funStats.paysFirstStreak.member)?.name} pays first`,
+        sub: `${funStats.paysFirstStreak.count} times running`,
+      })
+    }
+    if (funStats?.paysLastStreak) {
+      list.push({
+        emoji: '🐢',
+        title: `${memberById(group.members, funStats.paysLastStreak.member)?.name} pays last`,
+        sub: `${funStats.paysLastStreak.count} times running`,
+      })
+    }
+    if (vibes?.sponsor) {
+      list.push({
+        emoji: '👑',
+        title: `${subjectIs(vibes.sponsor.member, vibes.sponsor.name)} The Sponsor`,
+        sub: `Fronted ${formatINR(vibes.sponsor.amount)} for the group so far`,
+      })
+    }
+    if (vibes?.fastestSettler) {
+      list.push({
+        emoji: '🏃',
+        title: `${vibes.fastestSettler.name} — Fastest Settler`,
+        sub: vibes.fastestSettler.avgDays === 0 ? 'Settles up the same day' : `Settles up in ~${vibes.fastestSettler.avgDays}d on average`,
+      })
+    }
+    if (vibes?.duo) {
+      list.push({
+        emoji: '👯',
+        title: `${vibes.duo.nameA} & ${vibes.duo.nameB}`,
+        sub: `Duo of the Month — together in ${vibes.duo.count} expenses`,
+      })
+    }
+    if (vibes?.comeback) {
+      list.push({
+        emoji: '🎉',
+        title: `${subjectIs(vibes.comeback.member, vibes.comeback.name)} back on track!`,
+        sub: `Settled up on "${vibes.comeback.description}" — The Comeback`,
+      })
+    }
+    return list
+  }, [group, funStats, vibes])
 
   if (!group) {
     return (
@@ -47,7 +103,24 @@ export default function BlendGroup() {
         </div>
       </header>
 
-      <section className="px-5 mt-2">
+      {vibes?.groupVibe && (
+        <section className="px-5 mt-3">
+          <div
+            className="rounded-[1.75rem] p-4 flex items-center gap-3"
+            style={{ backgroundColor: `color-mix(in srgb, ${vibes.groupVibe.color} 16%, var(--color-base-800))`, border: `1px solid color-mix(in srgb, ${vibes.groupVibe.color} 35%, transparent)` }}
+          >
+            <span className="text-3xl">{vibes.groupVibe.emoji}</span>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-base-400">Group Vibe</p>
+              <p className="font-display text-lg" style={{ color: vibes.groupVibe.color }}>
+                {vibes.groupVibe.label}
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <section className="px-5 mt-4">
         <p className="text-base-400 text-sm">{myNet === 0 ? 'Your balance' : myNet > 0 ? 'You are owed' : 'You owe overall'}</p>
         <p
           className="font-display text-4xl font-numeral mt-1"
@@ -122,23 +195,50 @@ export default function BlendGroup() {
         </section>
       )}
 
-      {funStats && (
+      {badges.length > 0 && (
         <section className="px-5 mt-6">
           <SectionTitle>Squad stats</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
-            <Card className="text-center py-5">
-              <p className="text-2xl mb-1">⚡</p>
-              <p className="font-bold text-sm">{memberById(group.members, funStats.paysFirstStreak.member)?.name} pays first</p>
-              <p className="text-base-400 text-xs mt-0.5">{funStats.paysFirstStreak.count} times running</p>
-            </Card>
-            {funStats.paysLastStreak && (
-              <Card className="text-center py-5">
-                <p className="text-2xl mb-1">🐢</p>
-                <p className="font-bold text-sm">{memberById(group.members, funStats.paysLastStreak.member)?.name} pays last</p>
-                <p className="text-base-400 text-xs mt-0.5">{funStats.paysLastStreak.count} times running</p>
+            {badges.map((b, i) => (
+              <Card key={i} className="text-center py-5">
+                <p className="text-2xl mb-1">{b.emoji}</p>
+                <p className="font-bold text-sm">{b.title}</p>
+                <p className="text-base-400 text-xs mt-0.5">{b.sub}</p>
               </Card>
-            )}
+            ))}
           </div>
+        </section>
+      )}
+
+      {vibes?.signatureOrder && (
+        <section className="px-5 mt-6">
+          <SectionTitle>Group's Signature Order</SectionTitle>
+          <Card className="flex items-center gap-3">
+            <span className="text-3xl">{vibes.signatureOrder.emoji}</span>
+            <p className="text-sm font-semibold">
+              This group runs on <span className="font-bold">{vibes.signatureOrder.label}</span>
+            </p>
+          </Card>
+        </section>
+      )}
+
+      {vibes?.splitStyles?.length > 0 && (
+        <section className="px-5 mt-6">
+          <SectionTitle>Split style</SectionTitle>
+          <Card className="p-0 overflow-hidden">
+            {vibes.splitStyles.map((s, i, arr) => {
+              const member = memberById(group.members, s.member)
+              return (
+                <div key={s.member} className={`flex items-center gap-3 px-5 py-3.5 ${i !== arr.length - 1 ? 'border-b border-base-700' : ''}`}>
+                  <Avatar name={member?.name} color={member?.avatarColor} size={32} />
+                  <p className="flex-1 text-sm font-medium">{s.name}</p>
+                  <p className="text-sm font-semibold">
+                    {s.emoji} {s.tag}
+                  </p>
+                </div>
+              )
+            })}
+          </Card>
         </section>
       )}
 

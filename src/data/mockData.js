@@ -75,7 +75,6 @@ export const DUES = [
   { id: nextId('due'), kind: 'owed', title: 'Owe Kabir - petrol split', amount: 150, dueDate: D(Y, M, 5), recurring: false },
 ]
 
-// ── Blend: friend group expense tracking (Splitwise-style, no settlement) ──
 // ── Blend: multi-group expense tracking (Splitwise/GPay-Groups-style) ──────
 // Each group has its own member list and its own independent ledger — no
 // shared totals across groups. Every ledger entry is either an 'expense'
@@ -168,6 +167,38 @@ export const BLEND_GROUPS = [
         id: nextId('bx'), type: 'expense', date: D(Y, M, 6), description: 'Scuba diving', amount: 4500,
         paidBy: 'zoya', splitType: 'equal', paymentMethod: 'card',
         shares: splitEqually(4500, ['me', 'zoya']), // partial — Arjun opted out
+      },
+    ],
+  },
+  {
+    id: 'grp-office-lunch',
+    name: 'Office Lunch Gang',
+    createdAt: D(Y, M, 2),
+    members: membersFrom(['You', 'Rahul', 'Sana']),
+    ledger: [
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 2), description: 'Lunch at Truffles', amount: 900,
+        paidBy: 'me', splitType: 'equal', paymentMethod: 'card',
+        shares: splitEqually(900, ['me', 'rahul', 'sana']),
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 3), description: 'Lunch at Truffles', amount: 750,
+        paidBy: 'rahul', splitType: 'equal', paymentMethod: 'upi',
+        shares: splitEqually(750, ['me', 'rahul', 'sana']),
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 4), description: 'Cab share to office', amount: 200,
+        paidBy: 'sana', splitType: 'custom', paymentMethod: 'cash',
+        shares: { me: 80, sana: 60, rahul: 60 }, // custom — 'me' got picked up first, further away
+      },
+      {
+        id: nextId('bx'), type: 'expense', date: D(Y, M, 5), description: 'Birthday cake for Sana', amount: 450,
+        paidBy: 'me', splitType: 'equal', paymentMethod: 'upi',
+        shares: splitEqually(450, ['me', 'rahul']), // partial — it's for Sana, she doesn't chip in
+      },
+      {
+        id: nextId('bx'), type: 'settlement', date: D(Y, M, 8), from: 'me', to: 'rahul', amount: 250,
+        note: 'Lunch from the 3rd, settled up',
       },
     ],
   },

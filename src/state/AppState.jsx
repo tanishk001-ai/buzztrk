@@ -66,8 +66,18 @@ export function AppStateProvider({ children }) {
   const [savingsProgress, setSavingsProgress] = useState(0)
   const [trackedDates, setTrackedDates] = useState(() => seedTrackedDatesFromHistory(STREAK.history, TODAY))
   const [longestStreak, setLongestStreak] = useState(STREAK.longestStreak)
+  const [celebration, setCelebration] = useState(null)
 
   const penalizedCategoriesRef = useRef(new Set())
+  const firstSettleUpRef = useRef(false)
+  const fullMonthShownRef = useRef(false)
+  const allBudgetsOnTrackRef = useRef(false)
+
+  const triggerCelebration = useCallback((type, message, emoji) => {
+    setCelebration({ id: `${type}-${Date.now()}`, type, message, emoji })
+  }, [])
+
+  const clearCelebration = useCallback(() => setCelebration(null), [])
 
   const logActivity = useCallback(() => {
     setTrackedDates((prev) => {
@@ -140,14 +150,21 @@ export function AppStateProvider({ children }) {
     )
   }, [])
 
-  const addBlendSettlement = useCallback((groupId, settlement) => {
-    const id = `bs-new-${_blendEntryId++}`
-    setBlendGroups((prev) =>
-      prev.map((g) =>
-        g.id === groupId ? { ...g, ledger: [{ id, type: 'settlement', date: TODAY, ...settlement }, ...g.ledger] } : g,
-      ),
-    )
-  }, [])
+  const addBlendSettlement = useCallback(
+    (groupId, settlement) => {
+      const id = `bs-new-${_blendEntryId++}`
+      setBlendGroups((prev) =>
+        prev.map((g) =>
+          g.id === groupId ? { ...g, ledger: [{ id, type: 'settlement', date: TODAY, ...settlement }, ...g.ledger] } : g,
+        ),
+      )
+      if (!firstSettleUpRef.current) {
+        firstSettleUpRef.current = true
+        triggerCelebration('first-settle-up', 'First settle-up in Blend! 🎉', '🎉')
+      }
+    },
+    [triggerCelebration],
+  )
 
   const markDuePaid = useCallback((id) => {
     setDues((prev) => prev.filter((d) => d.id !== id))
@@ -213,9 +230,30 @@ export function AppStateProvider({ children }) {
     [trackedDates],
   )
 
+  // New personal record and "first full month" (30-day streak) are real
+  // milestones worth a celebration — checked against the *current* state
+  // value (not a functional updater) to avoid triggering a side effect
+  // from inside a setState callback.
   useEffect(() => {
-    setLongestStreak((prev) => Math.max(prev, currentStreak))
-  }, [currentStreak])
+    if (currentStreak > longestStreak) {
+      triggerCelebration('streak-record', `New personal record — ${currentStreak}-day streak! 🔥`, '🔥')
+      setLongestStreak(currentStreak)
+    }
+    if (currentStreak >= 30 && !fullMonthShownRef.current) {
+      fullMonthShownRef.current = true
+      triggerCelebration('full-month', 'First full month of tracking — incredible! 🌟', '🌟')
+    }
+  }, [currentStreak, longestStreak, triggerCelebration])
+
+  // First time every budgeted category is on track in the same month.
+  useEffect(() => {
+    if (budgets.length === 0 || allBudgetsOnTrackRef.current) return
+    const allOnTrack = budgets.every((b) => (monthSpendByCategory[b.category] || 0) <= b.limit)
+    if (allOnTrack) {
+      allBudgetsOnTrackRef.current = true
+      triggerCelebration('all-budgets-on-track', 'Every category on track this month! 🌟', '🌟')
+    }
+  }, [budgets, monthSpendByCategory, triggerCelebration])
 
   const value = useMemo(
     () => ({
@@ -242,6 +280,8 @@ export function AppStateProvider({ children }) {
       markDuePaid,
       redeemReward,
       earnPoints,
+      celebration,
+      clearCelebration,
     }),
     [
       transactions,
@@ -254,6 +294,8 @@ export function AppStateProvider({ children }) {
       addGroupMember,
       addBlendExpense,
       addBlendSettlement,
+      celebration,
+      clearCelebration,
       points,
       pointEvents,
       currentStreak,
