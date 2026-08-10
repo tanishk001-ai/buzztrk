@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Card, Avatar, SectionTitle, EmptyState, ProgressBar, formatINR, formatDate } from '../components/ui'
@@ -6,6 +6,7 @@ import { computePairNet, computeBalancesFor, computeOverallNet, paymentMethodMet
 import { computeBlendFunStats } from '../lib/blendStats'
 import { computeBlendVibes } from '../lib/blendVibes'
 import { goalProgress } from '../lib/goals'
+import ShareButton from '../components/ShareButton'
 
 function memberById(members, id) {
   return members.find((m) => m.id === id)
@@ -22,6 +23,8 @@ export default function BlendGroup() {
   const { blendGroups, groupGoals } = useAppState()
   const group = blendGroups.find((g) => g.id === groupId)
   const groupGoal = groupGoals.find((g) => g.groupId === groupId)
+  const vibeCardRef = useRef(null)
+  const sponsorCardRef = useRef(null)
 
   const pairNet = useMemo(() => (group ? computePairNet(group.ledger) : []), [group])
   const myBalances = useMemo(() => computeBalancesFor('me', pairNet), [pairNet])
@@ -46,13 +49,6 @@ export default function BlendGroup() {
         emoji: '🐢',
         title: `${memberById(group.members, funStats.paysLastStreak.member)?.name} pays last`,
         sub: `${funStats.paysLastStreak.count} times running`,
-      })
-    }
-    if (vibes?.sponsor) {
-      list.push({
-        emoji: '👑',
-        title: `${subjectIs(vibes.sponsor.member, vibes.sponsor.name)} The Sponsor`,
-        sub: `Fronted ${formatINR(vibes.sponsor.amount)} for the group so far`,
       })
     }
     if (vibes?.fastestSettler) {
@@ -108,7 +104,8 @@ export default function BlendGroup() {
       {vibes?.groupVibe && (
         <section className="px-5 mt-3">
           <div
-            className="rounded-[1.75rem] p-4 flex items-center gap-3"
+            ref={vibeCardRef}
+            className="rounded-[1.75rem] p-4 flex items-center gap-3 relative"
             style={{ backgroundColor: `color-mix(in srgb, ${vibes.groupVibe.color} 16%, var(--color-base-800))`, border: `1px solid color-mix(in srgb, ${vibes.groupVibe.color} 35%, transparent)` }}
           >
             <span className="text-3xl">{vibes.groupVibe.emoji}</span>
@@ -117,6 +114,35 @@ export default function BlendGroup() {
               <p className="font-display text-lg" style={{ color: vibes.groupVibe.color }}>
                 {vibes.groupVibe.label}
               </p>
+            </div>
+            <div className="absolute top-3 right-3">
+              <ShareButton
+                targetRef={vibeCardRef}
+                filename={`${group.name}-vibe.png`}
+                shareTitle={`${group.name} on BuzzTrk`}
+                shareText={`We're a ${vibes.groupVibe.label} ${vibes.groupVibe.emoji}`}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {vibes?.sponsor && (
+        <section className="px-5 mt-3">
+          <div ref={sponsorCardRef} className="bg-base-800 rounded-[1.75rem] p-5 flex items-center gap-3 relative">
+            <span className="text-3xl">👑</span>
+            <div className="flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-base-400">The Sponsor</p>
+              <p className="font-semibold text-sm">{subjectIs(vibes.sponsor.member, vibes.sponsor.name)} The Sponsor</p>
+              <p className="text-base-400 text-xs mt-0.5">Fronted {formatINR(vibes.sponsor.amount)} for the group so far</p>
+            </div>
+            <div className="absolute top-3 right-3">
+              <ShareButton
+                targetRef={sponsorCardRef}
+                filename={`${group.name}-sponsor.png`}
+                shareTitle={`${group.name} on BuzzTrk`}
+                shareText={`${vibes.sponsor.name} is The Sponsor of ${group.name} 👑`}
+              />
             </div>
           </div>
         </section>

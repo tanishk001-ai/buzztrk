@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { WRAPPED_2025 } from '../data/mockData'
 import { categoryMeta } from '../lib/categorize'
+import ShareButton from '../components/ShareButton'
 
 const GRADIENTS = [
   'linear-gradient(155deg, var(--color-wrap-1), var(--color-wrap-2))',
@@ -15,6 +16,7 @@ export default function Wrapped() {
   const { cards } = WRAPPED_2025
   const [index, setIndex] = useState(0)
   const touchStartX = useRef(null)
+  const cardRef = useRef(null)
 
   const go = (dir) => {
     const next = index + dir
@@ -44,6 +46,7 @@ export default function Wrapped() {
 
   return (
     <div
+      ref={cardRef}
       className="fixed inset-0 z-40 flex flex-col text-base-950"
       style={{ background: bg }}
       onTouchStart={onTouchStart}
@@ -55,6 +58,16 @@ export default function Wrapped() {
             <div className="h-full bg-black/70" style={{ width: i < index ? '100%' : i === index ? '100%' : '0%' }} />
           </div>
         ))}
+      </div>
+
+      <div className="absolute top-6 left-4 z-10">
+        <ShareButton
+          targetRef={cardRef}
+          filename={`buzztrk-wrapped-${index + 1}.png`}
+          shareTitle={`My BuzzTrk ${WRAPPED_2025.year} Wrapped`}
+          shareText={card.headline.replace(/\n/g, ' ')}
+          className="!bg-black/20 !border-black/20 !text-base-950"
+        />
       </div>
 
       <button onClick={() => navigate('/')} className="absolute top-6 right-4 text-black/70 font-bold text-lg z-10">

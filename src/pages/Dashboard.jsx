@@ -46,6 +46,11 @@ export default function Dashboard() {
             </div>
           </Link>
         </div>
+        <Link to="/personality">
+          <div className="mt-2 bg-base-800 border border-base-700 rounded-2xl py-3 text-center text-sm font-semibold active:scale-[0.97] transition-transform">
+            ✨ What's your spending personality?
+          </div>
+        </Link>
       </section>
 
       <section className="px-5 mt-8">
