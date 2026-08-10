@@ -5,10 +5,11 @@ import {
   BUDGETS,
   DUES,
   BLEND_GROUPS,
+  PERSONAL_GOALS,
+  GROUP_GOALS,
   STREAK,
   POINT_EVENTS,
   REWARDS_CATALOG,
-  SAVINGS_GOAL,
   TODAY,
 } from '../data/mockData'
 import { categoryMeta } from '../lib/categorize'
@@ -22,6 +23,8 @@ let _uploadId = 1
 let _blendEntryId = 1
 let _blendGroupId = 1
 let _blendMemberId = 1
+let _goalId = 1
+let _contribId = 1
 
 const OVER_BUDGET_PENALTY = 15
 
@@ -63,7 +66,8 @@ export function AppStateProvider({ children }) {
   const [points, setPoints] = useState(STREAK.points)
   const [pointEvents, setPointEvents] = useState(POINT_EVENTS)
   const [redeemed, setRedeemed] = useState([])
-  const [savingsProgress, setSavingsProgress] = useState(0)
+  const [personalGoals, setPersonalGoals] = useState(PERSONAL_GOALS)
+  const [groupGoals, setGroupGoals] = useState(GROUP_GOALS)
   const [trackedDates, setTrackedDates] = useState(() => seedTrackedDatesFromHistory(STREAK.history, TODAY))
   const [longestStreak, setLongestStreak] = useState(STREAK.longestStreak)
   const [celebration, setCelebration] = useState(null)
@@ -166,6 +170,40 @@ export function AppStateProvider({ children }) {
     [triggerCelebration],
   )
 
+  const createPersonalGoal = useCallback((title, target, emoji) => {
+    const id = `goal-new-${_goalId++}`
+    setPersonalGoals((prev) => [{ id, title: title.trim(), target, emoji: emoji || '🎯', createdAt: TODAY, contributions: [] }, ...prev])
+    return id
+  }, [])
+
+  const logPersonalContribution = useCallback(
+    (goalId, amount, note = '', source = 'manual') => {
+      const id = `contrib-new-${_contribId++}`
+      setPersonalGoals((prev) =>
+        prev.map((g) =>
+          g.id === goalId ? { ...g, contributions: [{ id, amount, date: TODAY, note, source }, ...g.contributions] } : g,
+        ),
+      )
+      if (source === 'manual') logActivity()
+    },
+    [logActivity],
+  )
+
+  const createGroupGoal = useCallback((groupId, title, target, emoji) => {
+    const id = `ggoal-new-${_goalId++}`
+    setGroupGoals((prev) => [{ id, groupId, title: title.trim(), target, emoji: emoji || '🎯', createdAt: TODAY, contributions: [] }, ...prev])
+    return id
+  }, [])
+
+  const logGroupContribution = useCallback((goalId, memberId, amount, note = '') => {
+    const id = `contrib-new-${_contribId++}`
+    setGroupGoals((prev) =>
+      prev.map((g) =>
+        g.id === goalId ? { ...g, contributions: [{ id, memberId, amount, date: TODAY, note }, ...g.contributions] } : g,
+      ),
+    )
+  }, [])
+
   const markDuePaid = useCallback((id) => {
     setDues((prev) => prev.filter((d) => d.id !== id))
   }, [])
@@ -180,7 +218,18 @@ export function AppStateProvider({ children }) {
       setPoints((p) => p - reward.cost)
       setRedeemed((prev) => [...prev, reward.id])
       if (reward.type === 'savings' && reward.savingsAmount) {
-        setSavingsProgress((s) => s + reward.savingsAmount)
+        // Feeds the user's first personal goal — the reward doesn't offer
+        // a goal picker, so it targets whichever goal is primary/oldest.
+        setPersonalGoals((prev) => {
+          if (prev.length === 0) return prev
+          const targetGoal = prev[0]
+          const id = `contrib-new-${_contribId++}`
+          return prev.map((g) =>
+            g.id === targetGoal.id
+              ? { ...g, contributions: [{ id, amount: reward.savingsAmount, date: TODAY, note: 'Reward redemption', source: 'reward' }, ...g.contributions] }
+              : g,
+          )
+        })
       }
       return true
     },
@@ -273,8 +322,12 @@ export function AppStateProvider({ children }) {
       streak: { currentStreak, longestStreak, history: streakHistory, todayTracked },
       rewardsCatalog: REWARDS_CATALOG,
       redeemed,
-      savingsProgress,
-      savingsGoal: SAVINGS_GOAL,
+      personalGoals,
+      groupGoals,
+      createPersonalGoal,
+      logPersonalContribution,
+      createGroupGoal,
+      logGroupContribution,
       addCashExpense,
       addUploadedTransactions,
       markDuePaid,
@@ -303,7 +356,12 @@ export function AppStateProvider({ children }) {
       streakHistory,
       todayTracked,
       redeemed,
-      savingsProgress,
+      personalGoals,
+      groupGoals,
+      createPersonalGoal,
+      logPersonalContribution,
+      createGroupGoal,
+      logGroupContribution,
       addCashExpense,
       addUploadedTransactions,
       markDuePaid,

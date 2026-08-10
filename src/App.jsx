@@ -11,7 +11,10 @@ import BlendGroup from './pages/BlendGroup'
 import BlendAddExpense from './pages/BlendAddExpense'
 import BlendSettleUp from './pages/BlendSettleUp'
 import BlendHistory from './pages/BlendHistory'
+import BlendGroupGoal from './pages/BlendGroupGoal'
 import Rewards from './pages/Rewards'
+import Goals from './pages/Goals'
+import GoalDetail from './pages/GoalDetail'
 import AddExpense from './pages/AddExpense'
 import UploadStatement from './pages/UploadStatement'
 import Wrapped from './pages/Wrapped'
@@ -38,7 +41,10 @@ export default function App() {
             <Route path="/blend/:groupId/add-expense" element={<BlendAddExpense />} />
             <Route path="/blend/:groupId/settle-up" element={<BlendSettleUp />} />
             <Route path="/blend/:groupId/history" element={<BlendHistory />} />
+            <Route path="/blend/:groupId/goal" element={<BlendGroupGoal />} />
             <Route path="/rewards" element={<Rewards />} />
+            <Route path="/goals" element={<Goals />} />
+            <Route path="/goals/:goalId" element={<GoalDetail />} />
             <Route path="/add-expense" element={<AddExpense />} />
             <Route path="/upload" element={<UploadStatement />} />
             <Route path="/wrapped" element={<Wrapped />} />

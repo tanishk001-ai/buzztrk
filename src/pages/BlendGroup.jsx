@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
-import { BackButton, Card, Avatar, SectionTitle, EmptyState, formatINR, formatDate } from '../components/ui'
+import { BackButton, Card, Avatar, SectionTitle, EmptyState, ProgressBar, formatINR, formatDate } from '../components/ui'
 import { computePairNet, computeBalancesFor, computeOverallNet, paymentMethodMeta } from '../lib/blendLedger'
 import { computeBlendFunStats } from '../lib/blendStats'
 import { computeBlendVibes } from '../lib/blendVibes'
+import { goalProgress } from '../lib/goals'
 
 function memberById(members, id) {
   return members.find((m) => m.id === id)
@@ -18,8 +19,9 @@ function subjectIs(memberId, name) {
 
 export default function BlendGroup() {
   const { groupId } = useParams()
-  const { blendGroups } = useAppState()
+  const { blendGroups, groupGoals } = useAppState()
   const group = blendGroups.find((g) => g.id === groupId)
+  const groupGoal = groupGoals.find((g) => g.groupId === groupId)
 
   const pairNet = useMemo(() => (group ? computePairNet(group.ledger) : []), [group])
   const myBalances = useMemo(() => computeBalancesFor('me', pairNet), [pairNet])
@@ -119,6 +121,30 @@ export default function BlendGroup() {
           </div>
         </section>
       )}
+
+      <section className="px-5 mt-4">
+        <Link to={`/blend/${group.id}/goal`}>
+          {groupGoal ? (
+            <Card>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold">
+                  {groupGoal.emoji} {groupGoal.title}
+                </span>
+                <span className="text-xs text-base-400">{goalProgress(groupGoal).pct}%</span>
+              </div>
+              <ProgressBar pct={goalProgress(groupGoal).pct} color="var(--color-income)" />
+              <p className="font-numeral text-sm font-bold mt-2" style={{ color: 'var(--color-income)' }}>
+                {formatINR(goalProgress(groupGoal).total)}{' '}
+                <span className="text-base-400 text-xs font-body font-normal">/ {formatINR(groupGoal.target)}</span>
+              </p>
+            </Card>
+          ) : (
+            <div className="border-2 border-dashed border-base-700 rounded-[1.75rem] py-3 text-center text-sm font-semibold text-base-400 active:scale-[0.98] transition-transform">
+              🐷 Set a group savings goal
+            </div>
+          )}
+        </Link>
+      </section>
 
       <section className="px-5 mt-4">
         <p className="text-base-400 text-sm">{myNet === 0 ? 'Your balance' : myNet > 0 ? 'You are owed' : 'You owe overall'}</p>

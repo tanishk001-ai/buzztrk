@@ -230,10 +230,38 @@ export const REWARDS_CATALOG = [
   { id: 'rw-5', title: 'BuzzTrk Tote Bag', cost: 1200, emoji: '👜', type: 'merch' },
 ]
 
-export const SAVINGS_GOAL = {
-  title: 'New Laptop Fund',
-  target: 5000,
-}
+// ── Savings goals — personal + group ─────────────────────────────────────────
+// Same manual-entry honesty as cash expenses and Blend settlements: the user
+// (or a group member) logs "I put aside ₹X", nothing here moves real money.
+export const PERSONAL_GOALS = [
+  {
+    id: 'goal-laptop',
+    title: 'New Laptop Fund',
+    emoji: '💻',
+    target: 5000,
+    createdAt: D(Y, M, 2),
+    contributions: [
+      { id: nextId('contrib'), amount: 800, date: D(Y, M, 3), note: 'Skipped eating out this week', source: 'manual' },
+      { id: nextId('contrib'), amount: 450, date: D(Y, M, 6), note: 'Saved on cab fares', source: 'manual' },
+    ],
+  },
+]
+
+export const GROUP_GOALS = [
+  {
+    id: 'ggoal-next-trip',
+    groupId: 'grp-weekend-crew',
+    title: 'Next Trip Fund',
+    emoji: '🏝️',
+    target: 10000,
+    createdAt: D(Y, M, 5),
+    contributions: [
+      { id: nextId('contrib'), memberId: 'me', amount: 1000, date: D(Y, M, 6), note: '' },
+      { id: nextId('contrib'), memberId: 'arjun', amount: 1500, date: D(Y, M, 7), note: '' },
+      { id: nextId('contrib'), memberId: 'priya', amount: 800, date: D(Y, M, 8), note: '' },
+    ],
+  },
+]
 
 // ── Wrapped-style annual recap (mock, generated once a year) ────────────────
 export const WRAPPED_2025 = {

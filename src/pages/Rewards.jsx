@@ -1,12 +1,14 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
 import { Card, Button, ProgressBar, SectionTitle, Coin, formatINR, formatDate } from '../components/ui'
+import { goalTotal, goalProgress } from '../lib/goals'
 
 export default function Rewards() {
-  const { streak, points, pointEvents, rewardsCatalog, redeemed, redeemReward, savingsProgress, savingsGoal } =
-    useAppState()
+  const { streak, points, pointEvents, rewardsCatalog, redeemed, redeemReward, personalGoals } = useAppState()
   const [justRedeemed, setJustRedeemed] = useState(null)
+  const primaryGoal = personalGoals[0]
 
   const handleRedeem = (reward) => {
     const ok = redeemReward(reward)
@@ -61,20 +63,32 @@ export default function Rewards() {
         </Card>
       </section>
 
-      {savingsProgress > 0 && (
+      <section className="px-5 mt-4">
+        <Link to="/goals">
+          <div className="bg-base-800 border border-base-700 rounded-2xl py-3 text-center text-sm font-semibold active:scale-[0.97] transition-transform">
+            🐷 View savings goals
+          </div>
+        </Link>
+      </section>
+
+      {primaryGoal && goalTotal(primaryGoal) > 0 && (
         <section className="px-5 mt-4">
-          <Card>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold">🐷 {savingsGoal.title}</span>
-              <span className="text-xs text-base-400">
-                {formatINR(savingsProgress)} / {formatINR(savingsGoal.target)}
-              </span>
-            </div>
-            <ProgressBar pct={Math.round((savingsProgress / savingsGoal.target) * 100)} color="var(--color-income)" />
-            <p className="text-base-400 text-xs mt-2">
-              Symbolic — points redeemed toward this goal, not a real transfer.
-            </p>
-          </Card>
+          <Link to={`/goals/${primaryGoal.id}`}>
+            <Card>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold">
+                  {primaryGoal.emoji} {primaryGoal.title}
+                </span>
+                <span className="text-xs text-base-400">
+                  {formatINR(goalProgress(primaryGoal).total)} / {formatINR(primaryGoal.target)}
+                </span>
+              </div>
+              <ProgressBar pct={goalProgress(primaryGoal).pct} color="var(--color-income)" />
+              <p className="text-base-400 text-xs mt-2">
+                Symbolic — points redeemed toward this goal, not a real transfer. Tap to view your journey.
+              </p>
+            </Card>
+          </Link>
         </section>
       )}
 
