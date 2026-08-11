@@ -14,6 +14,9 @@ export default function Header({ title, subtitle, showBack = true }) {
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <Link to="/profile" className="text-lg" title="Profile">
+          👤
+        </Link>
         <Link to="/wrapped" className="text-lg" title="Wrapped recap">
           ✨
         </Link>

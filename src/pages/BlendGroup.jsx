@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Card, Avatar, SectionTitle, EmptyState, ProgressBar, formatINR, formatDate } from '../components/ui'
@@ -7,6 +7,8 @@ import { computeBlendFunStats } from '../lib/blendStats'
 import { computeBlendVibes } from '../lib/blendVibes'
 import { goalProgress } from '../lib/goals'
 import ShareButton from '../components/ShareButton'
+
+const FEATURED_COUNT = 3
 
 function memberById(members, id) {
   return members.find((m) => m.id === id)
@@ -18,13 +20,52 @@ function subjectIs(memberId, name) {
   return memberId === 'me' ? 'You are' : `${name} is`
 }
 
+function summarizeSplitStyles(splitStyles) {
+  const counts = {}
+  for (const s of splitStyles) counts[s.tag] = (counts[s.tag] || 0) + 1
+  return Object.entries(counts)
+    .map(([tag, count]) => `${count} ${tag}${count > 1 ? 's' : ''}`)
+    .join(', ')
+}
+
+// Deterministic "rotation" — which 2-3 of the (up to 9) available highlight
+// cards are featured today, seeded by date + group so it varies day to day
+// and group to group without needing any backend state.
+function pickFeatured(cards, count, seed) {
+  if (cards.length <= count) return cards
+  const offset = seed % cards.length
+  const picked = []
+  for (let i = 0; i < count; i++) picked.push(cards[(offset + i) % cards.length])
+  return picked
+}
+
+function hashString(s) {
+  let h = 0
+  for (const c of s) h += c.charCodeAt(0)
+  return h
+}
+
 export default function BlendGroup() {
   const { groupId } = useParams()
-  const { blendGroups, groupGoals } = useAppState()
+  const { blendGroups, groupGoals, today } = useAppState()
   const group = blendGroups.find((g) => g.id === groupId)
   const groupGoal = groupGoals.find((g) => g.groupId === groupId)
-  const vibeCardRef = useRef(null)
-  const sponsorCardRef = useRef(null)
+  const [showAllHighlights, setShowAllHighlights] = useState(false)
+  const cardRefsMap = useRef(new Map())
+
+  // React Router reuses this component instance across param changes on
+  // the same route (visiting a different group doesn't remount it), so
+  // this local toggle would otherwise leak "expanded" from one group into
+  // the next.
+  useEffect(() => {
+    setShowAllHighlights(false)
+    cardRefsMap.current = new Map()
+  }, [groupId])
+
+  function getCardRef(id) {
+    if (!cardRefsMap.current.has(id)) cardRefsMap.current.set(id, { current: null })
+    return cardRefsMap.current.get(id)
+  }
 
   const pairNet = useMemo(() => (group ? computePairNet(group.ledger) : []), [group])
   const myBalances = useMemo(() => computeBalancesFor('me', pairNet), [pairNet])
@@ -34,46 +75,71 @@ export default function BlendGroup() {
   const vibes = useMemo(() => (group ? computeBlendVibes(group.ledger, group.members) : null), [group])
   const recent = useMemo(() => (group ? [...group.ledger].sort((a, b) => b.date - a.date).slice(0, 5) : []), [group])
 
-  const badges = useMemo(() => {
-    if (!group) return []
-    const list = []
+  // One pool covering all of Blend's fun stats (Sponsor, Signature Order,
+  // Fastest Settler, Duo, Split Style, Comeback, Group Vibe) plus the
+  // older pays-first/pays-last streaks — same computations as before, just
+  // no longer all shown at once.
+  const highlightCards = useMemo(() => {
+    if (!group || !vibes) return []
+    const cards = []
+    if (vibes.groupVibe) {
+      cards.push({ id: 'vibe', emoji: vibes.groupVibe.emoji, title: 'Group Vibe', sub: vibes.groupVibe.label, color: vibes.groupVibe.color, shareable: true })
+    }
+    if (vibes.sponsor) {
+      cards.push({
+        id: 'sponsor',
+        emoji: '👑',
+        title: `${subjectIs(vibes.sponsor.member, vibes.sponsor.name)} The Sponsor`,
+        sub: `Fronted ${formatINR(vibes.sponsor.amount)} so far`,
+        shareable: true,
+      })
+    }
+    if (vibes.signatureOrder) {
+      cards.push({ id: 'signature', emoji: vibes.signatureOrder.emoji, title: "Signature Order", sub: `Runs on ${vibes.signatureOrder.label}` })
+    }
+    if (vibes.fastestSettler) {
+      cards.push({
+        id: 'fastest',
+        emoji: '🏃',
+        title: `${vibes.fastestSettler.name} — Fastest Settler`,
+        sub: vibes.fastestSettler.avgDays === 0 ? 'Settles up the same day' : `Settles up in ~${vibes.fastestSettler.avgDays}d on average`,
+      })
+    }
+    if (vibes.duo) {
+      cards.push({ id: 'duo', emoji: '👯', title: `${vibes.duo.nameA} & ${vibes.duo.nameB}`, sub: `Duo of the Month — ${vibes.duo.count} expenses together` })
+    }
+    if (vibes.splitStyles?.length) {
+      cards.push({ id: 'split', emoji: '🎯', title: 'Split Styles', sub: summarizeSplitStyles(vibes.splitStyles) })
+    }
+    if (vibes.comeback) {
+      cards.push({
+        id: 'comeback',
+        emoji: '🎉',
+        title: `${subjectIs(vibes.comeback.member, vibes.comeback.name)} back on track!`,
+        sub: `The Comeback — "${vibes.comeback.description}"`,
+      })
+    }
     if (funStats?.paysFirstStreak) {
-      list.push({
+      cards.push({
+        id: 'pays-first',
         emoji: '⚡',
         title: `${memberById(group.members, funStats.paysFirstStreak.member)?.name} pays first`,
         sub: `${funStats.paysFirstStreak.count} times running`,
       })
     }
     if (funStats?.paysLastStreak) {
-      list.push({
+      cards.push({
+        id: 'pays-last',
         emoji: '🐢',
         title: `${memberById(group.members, funStats.paysLastStreak.member)?.name} pays last`,
         sub: `${funStats.paysLastStreak.count} times running`,
       })
     }
-    if (vibes?.fastestSettler) {
-      list.push({
-        emoji: '🏃',
-        title: `${vibes.fastestSettler.name} — Fastest Settler`,
-        sub: vibes.fastestSettler.avgDays === 0 ? 'Settles up the same day' : `Settles up in ~${vibes.fastestSettler.avgDays}d on average`,
-      })
-    }
-    if (vibes?.duo) {
-      list.push({
-        emoji: '👯',
-        title: `${vibes.duo.nameA} & ${vibes.duo.nameB}`,
-        sub: `Duo of the Month — together in ${vibes.duo.count} expenses`,
-      })
-    }
-    if (vibes?.comeback) {
-      list.push({
-        emoji: '🎉',
-        title: `${subjectIs(vibes.comeback.member, vibes.comeback.name)} back on track!`,
-        sub: `Settled up on "${vibes.comeback.description}" — The Comeback`,
-      })
-    }
-    return list
-  }, [group, funStats, vibes])
+    return cards
+  }, [group, vibes, funStats])
+
+  const seed = group ? today.getDate() + hashString(group.id) : 0
+  const featuredHighlights = useMemo(() => pickFeatured(highlightCards, FEATURED_COUNT, seed), [highlightCards, seed])
 
   if (!group) {
     return (
@@ -83,6 +149,8 @@ export default function BlendGroup() {
       </div>
     )
   }
+
+  const visibleHighlights = showAllHighlights ? highlightCards : featuredHighlights
 
   return (
     <div>
@@ -100,53 +168,6 @@ export default function BlendGroup() {
           ))}
         </div>
       </header>
-
-      {vibes?.groupVibe && (
-        <section className="px-5 mt-3">
-          <div
-            ref={vibeCardRef}
-            className="rounded-[1.75rem] p-4 flex items-center gap-3 relative"
-            style={{ backgroundColor: `color-mix(in srgb, ${vibes.groupVibe.color} 16%, var(--color-base-800))`, border: `1px solid color-mix(in srgb, ${vibes.groupVibe.color} 35%, transparent)` }}
-          >
-            <span className="text-3xl">{vibes.groupVibe.emoji}</span>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wide text-base-400">Group Vibe</p>
-              <p className="font-display text-lg" style={{ color: vibes.groupVibe.color }}>
-                {vibes.groupVibe.label}
-              </p>
-            </div>
-            <div className="absolute top-3 right-3">
-              <ShareButton
-                targetRef={vibeCardRef}
-                filename={`${group.name}-vibe.png`}
-                shareTitle={`${group.name} on BuzzTrk`}
-                shareText={`We're a ${vibes.groupVibe.label} ${vibes.groupVibe.emoji}`}
-              />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {vibes?.sponsor && (
-        <section className="px-5 mt-3">
-          <div ref={sponsorCardRef} className="bg-base-800 rounded-[1.75rem] p-5 flex items-center gap-3 relative">
-            <span className="text-3xl">👑</span>
-            <div className="flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-base-400">The Sponsor</p>
-              <p className="font-semibold text-sm">{subjectIs(vibes.sponsor.member, vibes.sponsor.name)} The Sponsor</p>
-              <p className="text-base-400 text-xs mt-0.5">Fronted {formatINR(vibes.sponsor.amount)} for the group so far</p>
-            </div>
-            <div className="absolute top-3 right-3">
-              <ShareButton
-                targetRef={sponsorCardRef}
-                filename={`${group.name}-sponsor.png`}
-                shareTitle={`${group.name} on BuzzTrk`}
-                shareText={`${vibes.sponsor.name} is The Sponsor of ${group.name} 👑`}
-              />
-            </div>
-          </div>
-        </section>
-      )}
 
       <section className="px-5 mt-4">
         <Link to={`/blend/${group.id}/goal`}>
@@ -247,50 +268,65 @@ export default function BlendGroup() {
         </section>
       )}
 
-      {badges.length > 0 && (
+      {highlightCards.length > 0 && (
         <section className="px-5 mt-6">
-          <SectionTitle>Squad stats</SectionTitle>
-          <div className="grid grid-cols-2 gap-3">
-            {badges.map((b, i) => (
-              <Card key={i} className="text-center py-5">
-                <p className="text-2xl mb-1">{b.emoji}</p>
-                <p className="font-bold text-sm">{b.title}</p>
-                <p className="text-base-400 text-xs mt-0.5">{b.sub}</p>
-              </Card>
-            ))}
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base-200 font-semibold text-sm tracking-wide uppercase">Squad highlights</h2>
+            {highlightCards.length > FEATURED_COUNT && (
+              <button
+                onClick={() => setShowAllHighlights((s) => !s)}
+                className="text-xs font-semibold text-base-400 underline decoration-base-600"
+              >
+                {showAllHighlights ? 'Show less' : `View all (${highlightCards.length})`}
+              </button>
+            )}
           </div>
-        </section>
-      )}
-
-      {vibes?.signatureOrder && (
-        <section className="px-5 mt-6">
-          <SectionTitle>Group's Signature Order</SectionTitle>
-          <Card className="flex items-center gap-3">
-            <span className="text-3xl">{vibes.signatureOrder.emoji}</span>
-            <p className="text-sm font-semibold">
-              This group runs on <span className="font-bold">{vibes.signatureOrder.label}</span>
-            </p>
-          </Card>
-        </section>
-      )}
-
-      {vibes?.splitStyles?.length > 0 && (
-        <section className="px-5 mt-6">
-          <SectionTitle>Split style</SectionTitle>
-          <Card className="p-0 overflow-hidden">
-            {vibes.splitStyles.map((s, i, arr) => {
-              const member = memberById(group.members, s.member)
-              return (
-                <div key={s.member} className={`flex items-center gap-3 px-5 py-3.5 ${i !== arr.length - 1 ? 'border-b border-base-700' : ''}`}>
-                  <Avatar name={member?.name} color={member?.avatarColor} size={32} />
-                  <p className="flex-1 text-sm font-medium">{s.name}</p>
-                  <p className="text-sm font-semibold">
-                    {s.emoji} {s.tag}
-                  </p>
+          <div className="space-y-3">
+            {visibleHighlights.map((card) =>
+              card.id === 'vibe' ? (
+                <div
+                  key={card.id}
+                  ref={getCardRef(card.id)}
+                  className="rounded-[1.75rem] p-4 flex items-center gap-3 relative"
+                  style={{ backgroundColor: `color-mix(in srgb, ${card.color} 16%, var(--color-base-800))`, border: `1px solid color-mix(in srgb, ${card.color} 35%, transparent)` }}
+                >
+                  <span className="text-3xl">{card.emoji}</span>
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-base-400">{card.title}</p>
+                    <p className="font-display text-lg" style={{ color: card.color }}>
+                      {card.sub}
+                    </p>
+                  </div>
+                  <div className="absolute top-3 right-3">
+                    <ShareButton
+                      targetRef={getCardRef(card.id)}
+                      filename={`${group.name}-vibe.png`}
+                      shareTitle={`${group.name} on BuzzTrk`}
+                      shareText={`We're a ${card.sub} ${card.emoji}`}
+                    />
+                  </div>
                 </div>
-              )
-            })}
-          </Card>
+              ) : (
+                <div key={card.id} ref={card.shareable ? getCardRef(card.id) : undefined} className="bg-base-800 rounded-[1.75rem] p-4 flex items-center gap-3 relative">
+                  <span className="text-2xl shrink-0">{card.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm">{card.title}</p>
+                    <p className="text-base-400 text-xs mt-0.5">{card.sub}</p>
+                  </div>
+                  {card.shareable && (
+                    <div className="absolute top-3 right-3">
+                      <ShareButton
+                        targetRef={getCardRef(card.id)}
+                        filename={`${group.name}-${card.id}.png`}
+                        shareTitle={`${group.name} on BuzzTrk`}
+                        shareText={`${card.title} ${card.emoji}`}
+                      />
+                    </div>
+                  )}
+                </div>
+              ),
+            )}
+          </div>
         </section>
       )}
 

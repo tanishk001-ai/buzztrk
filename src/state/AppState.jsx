@@ -71,14 +71,20 @@ export function AppStateProvider({ children }) {
   const [trackedDates, setTrackedDates] = useState(() => seedTrackedDatesFromHistory(STREAK.history, TODAY))
   const [longestStreak, setLongestStreak] = useState(STREAK.longestStreak)
   const [celebration, setCelebration] = useState(null)
+  const [achievedMilestones, setAchievedMilestones] = useState([])
 
   const penalizedCategoriesRef = useRef(new Set())
   const firstSettleUpRef = useRef(false)
   const fullMonthShownRef = useRef(false)
   const allBudgetsOnTrackRef = useRef(false)
 
+  // Every celebration is also a permanent milestone record — the toast is
+  // transient (dismissed after a few seconds), but the Achievements
+  // showcase needs real history to read from, not just the latest one.
   const triggerCelebration = useCallback((type, message, emoji) => {
-    setCelebration({ id: `${type}-${Date.now()}`, type, message, emoji })
+    const entry = { id: `${type}-${Date.now()}`, type, message, emoji, date: TODAY }
+    setCelebration(entry)
+    setAchievedMilestones((prev) => [entry, ...prev])
   }, [])
 
   const clearCelebration = useCallback(() => setCelebration(null), [])
@@ -335,6 +341,7 @@ export function AppStateProvider({ children }) {
       earnPoints,
       celebration,
       clearCelebration,
+      achievedMilestones,
     }),
     [
       transactions,
@@ -349,6 +356,7 @@ export function AppStateProvider({ children }) {
       addBlendSettlement,
       celebration,
       clearCelebration,
+      achievedMilestones,
       points,
       pointEvents,
       currentStreak,

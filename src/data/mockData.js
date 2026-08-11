@@ -263,19 +263,8 @@ export const GROUP_GOALS = [
   },
 ]
 
-// ── Wrapped-style annual recap (mock, generated once a year) ────────────────
-export const WRAPPED_2025 = {
-  year: 2025,
-  cards: [
-    { id: 'w1', kind: 'intro', headline: 'Your 2025,\nfinancially.', sub: 'Let’s look back.' },
-    { id: 'w2', kind: 'stat', headline: '287', sub: 'days you tracked spending', big: true },
-    { id: 'w3', kind: 'stat', headline: '₹1.4L', sub: 'total spend you actually saw coming', big: true },
-    { id: 'w4', kind: 'top-category', headline: 'Eating Out', sub: 'was your #1 category — and you still stayed close to budget 8 out of 12 months', category: 'food' },
-    { id: 'w5', kind: 'streak', headline: '21-day', sub: 'longest tracking streak. That’s discipline, not luck.' },
-    { id: 'w6', kind: 'good-habit', headline: 'Zero', sub: 'months you ran out of money before payday — down from 4 the year before' },
-    { id: 'w7', kind: 'outro', headline: 'That’s a\nfinancially sound year.', sub: 'Here’s to more of that.' },
-  ],
-}
+// Wrapped moved from an annual, fabricated 7-card story to a monthly,
+// 2-3 card recap computed from real data — see src/lib/monthlyWrapped.js.
 
 // ── Advice (opt-in only, factual & non-judgmental, Cred-style) ─────────────
 // Every insight here is computed from the live transactions/budgets/dues

@@ -16,6 +16,7 @@ import Rewards from './pages/Rewards'
 import Goals from './pages/Goals'
 import GoalDetail from './pages/GoalDetail'
 import Personality from './pages/Personality'
+import Profile from './pages/Profile'
 import AddExpense from './pages/AddExpense'
 import UploadStatement from './pages/UploadStatement'
 import Wrapped from './pages/Wrapped'
@@ -47,6 +48,7 @@ export default function App() {
             <Route path="/goals" element={<Goals />} />
             <Route path="/goals/:goalId" element={<GoalDetail />} />
             <Route path="/personality" element={<Personality />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/add-expense" element={<AddExpense />} />
             <Route path="/upload" element={<UploadStatement />} />
             <Route path="/wrapped" element={<Wrapped />} />
