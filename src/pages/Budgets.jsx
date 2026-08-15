@@ -2,15 +2,17 @@ import { useState } from 'react'
 import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
 import { Button, Card, ProgressBar, formatINR } from '../components/ui'
+import NewCategoryForm from '../components/NewCategoryForm'
 import { CATEGORIES, categoryMeta } from '../lib/categorize'
 
 const EXCLUDED_FROM_BUDGETS = ['income', 'cash_withdrawal', 'transfers', 'emi', 'other']
 
 export default function Budgets() {
-  const { monthSpendByCategory, budgets, addBudget } = useAppState()
+  const { monthSpendByCategory, budgets, addBudget, addCustomCategory } = useAppState()
   const [adding, setAdding] = useState(false)
   const [newCategory, setNewCategory] = useState('')
   const [newLimit, setNewLimit] = useState('')
+  const [creatingCategory, setCreatingCategory] = useState(false)
 
   const budgetedIds = new Set(budgets.map((b) => b.category))
   const availableCategories = CATEGORIES.filter((c) => !EXCLUDED_FROM_BUDGETS.includes(c.id) && !budgetedIds.has(c.id))
@@ -62,6 +64,16 @@ export default function Budgets() {
 
         {adding ? (
           <Card>
+            {creatingCategory ? (
+              <NewCategoryForm
+                onCancel={() => setCreatingCategory(false)}
+                onCreate={(label, emoji, color) => {
+                  const id = addCustomCategory(label, emoji, color)
+                  setNewCategory(id)
+                  setCreatingCategory(false)
+                }}
+              />
+            ) : (
             <form onSubmit={submitNewBudget} className="space-y-3">
               <div>
                 <label className="text-xs font-semibold text-base-400 uppercase tracking-wide">Category</label>
@@ -82,9 +94,13 @@ export default function Budgets() {
                       {c.label}
                     </button>
                   ))}
-                  {availableCategories.length === 0 && (
-                    <p className="text-base-400 text-sm">Every category already has a budget.</p>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setCreatingCategory(true)}
+                    className="px-3 py-2 rounded-full text-sm font-semibold border border-dashed border-base-600 text-base-400"
+                  >
+                    ＋ New category
+                  </button>
                 </div>
               </div>
               <div>
@@ -109,6 +125,7 @@ export default function Budgets() {
                 </Button>
               </div>
             </form>
+            )}
           </Card>
         ) : (
           availableCategories.length > 0 && (

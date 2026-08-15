@@ -118,10 +118,18 @@ export default function Rewards() {
       </section>
 
       <section className="px-5 mt-6">
-        <SectionTitle>Recent points</SectionTitle>
+        <SectionTitle
+          action={
+            <Link to="/points-history" className="text-xs font-semibold text-base-400 underline decoration-base-600">
+              Full history
+            </Link>
+          }
+        >
+          Recent points
+        </SectionTitle>
         <Card className="p-0 overflow-hidden">
-          {pointEvents.map((e, i) => (
-            <div key={e.id} className={`flex items-center gap-3 px-5 py-3.5 ${i !== pointEvents.length - 1 ? 'border-b border-base-700' : ''}`}>
+          {pointEvents.slice(0, 5).map((e, i, arr) => (
+            <div key={e.id} className={`flex items-center gap-3 px-5 py-3.5 ${i !== arr.length - 1 ? 'border-b border-base-700' : ''}`}>
               <Coin size={22} />
               <div className="flex-1">
                 <p className="text-sm font-medium">{e.label}</p>

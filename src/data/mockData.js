@@ -263,8 +263,22 @@ export const GROUP_GOALS = [
   },
 ]
 
-// Wrapped moved from an annual, fabricated 7-card story to a monthly,
-// 2-3 card recap computed from real data — see src/lib/monthlyWrapped.js.
+// The Recap moved from an annual, fabricated 7-card story to a monthly,
+// 2-3 card recap computed from real data — see src/lib/monthlyRecap.js.
+
+// ── Monthly spend history (for Trends) ───────────────────────────────────
+// The live transaction feed only covers the current month (Aug 2026, see
+// AUTO_TRANSACTIONS above) — there's no backend accumulating history over
+// time. These five prior months are seeded category totals so Trends has
+// something real to chart; the current month is always computed live from
+// actual transactions, never from this list.
+export const MONTHLY_HISTORY = [
+  { month: D(Y, 3, 1), byCategory: { food: 2100, groceries: 1900, transport: 1100, shopping: 2600, subs: 318, bills: 720, entertainment: 900, rent: 9800, health: 200 } },
+  { month: D(Y, 4, 1), byCategory: { food: 2650, groceries: 2050, transport: 950, shopping: 1400, subs: 318, bills: 690, entertainment: 500, rent: 9800, health: 450 } },
+  { month: D(Y, 5, 1), byCategory: { food: 3100, groceries: 2200, transport: 1300, shopping: 3400, subs: 318, bills: 810, entertainment: 1100, rent: 9800, health: 150 } },
+  { month: D(Y, 6, 1), byCategory: { food: 2400, groceries: 1750, transport: 1050, shopping: 900, subs: 318, bills: 760, entertainment: 700, rent: 9800, health: 300 } },
+  { month: D(Y, 7, 1), byCategory: { food: 2950, groceries: 2400, transport: 1250, shopping: 2100, subs: 318, bills: 800, entertainment: 1300, rent: 9800, health: 500 } },
+]
 
 // ── Advice (opt-in only, factual & non-judgmental, Cred-style) ─────────────
 // Every insight here is computed from the live transactions/budgets/dues

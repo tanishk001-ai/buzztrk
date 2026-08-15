@@ -23,6 +23,39 @@ export const CATEGORIES = [
 
 export const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]))
 
+// Curated swatches for user-created categories — distinct from the fixed
+// per-category hues above so a custom category never visually collides
+// with a built-in one.
+export const CUSTOM_CATEGORY_COLORS = [
+  '#E85D75', '#5DB3E8', '#F2A65A', '#8ED081', '#C792EA', '#5FD4C6', '#F27878', '#A6A6F0',
+]
+
+function slugify(label) {
+  return label
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'category'
+}
+
+// Registers a user-created category at runtime. CATEGORIES/CATEGORY_MAP are
+// module-level and mutated in place (rather than reassigned) so every
+// existing `import { CATEGORIES }` reference sees the new entry on its next
+// render — callers still need to re-render to observe it, which
+// useAppState()'s addCustomCategory takes care of.
+export function addCategory(label, emoji, color) {
+  const trimmed = label.trim()
+  let id = slugify(trimmed)
+  let suffix = 2
+  while (CATEGORY_MAP[id]) {
+    id = `${slugify(trimmed)}_${suffix++}`
+  }
+  const category = { id, label: trimmed, color: color || CUSTOM_CATEGORY_COLORS[CATEGORIES.length % CUSTOM_CATEGORY_COLORS.length], emoji: emoji || '🏷️', custom: true }
+  CATEGORIES.push(category)
+  CATEGORY_MAP[id] = category
+  return id
+}
+
 // Ordered keyword rules — first match wins. Keys are lowercase substrings
 // matched against the cleaned narration/merchant string.
 const RULES = [

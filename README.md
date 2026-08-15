@@ -38,8 +38,8 @@ npm run dev
 Dark neutral base (Spotify-inspired) with one vivid, distinct color per
 spend category (FamPay-inspired), bubble-shaped cards and bold numerals
 throughout, coin/badge gamification (Pop-inspired) for the streak and points
-system, and a signature gradient reserved only for the swipeable Wrapped
-recap and milestone moments.
+system, and a signature gradient reserved only for the swipeable Recap
+and milestone moments.
 
 ## Deploy
 

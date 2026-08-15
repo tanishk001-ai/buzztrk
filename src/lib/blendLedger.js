@@ -138,3 +138,12 @@ export function entryInvolvesMember(entry, memberId) {
 export function entryInvolvesPair(entry, memberIdA, memberIdB) {
   return entryInvolvesMember(entry, memberIdA) && entryInvolvesMember(entry, memberIdB)
 }
+
+// Filters a group's ledger down to what `viewerId` is allowed to see —
+// entries tagged "hidden from" that member (the surprise-planning case)
+// disappear from their view entirely: not in history, not in balances, not
+// in fun stats. Anyone not tagged sees the entry as normal, including the
+// person who created it, so they can reveal it later.
+export function visibleLedger(ledger, viewerId) {
+  return ledger.filter((entry) => !entry.hiddenFrom || !entry.hiddenFrom.includes(viewerId))
+}

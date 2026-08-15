@@ -10,10 +10,11 @@ import {
   STREAK,
   POINT_EVENTS,
   REWARDS_CATALOG,
+  MONTHLY_HISTORY,
   TODAY,
 } from '../data/mockData'
-import { categoryMeta } from '../lib/categorize'
-import { MAX_GROUP_MEMBERS, avatarColorForIndex } from '../lib/blendLedger'
+import { categoryMeta, addCategory } from '../lib/categorize'
+import { MAX_GROUP_MEMBERS, avatarColorForIndex, entryInvolvesMember } from '../lib/blendLedger'
 import { seedTrackedDatesFromHistory, computeStreak, dateKey } from '../lib/streak'
 
 const AppStateContext = createContext(null)
@@ -151,11 +152,47 @@ export function AppStateProvider({ children }) {
     )
   }, [])
 
+  const renameBlendGroup = useCallback((groupId, name) => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    setBlendGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, name: trimmed } : g)))
+  }, [])
+
+  // Only removable if the member has never appeared in the ledger — once
+  // they're party to any expense or settlement, deleting them would either
+  // corrupt past entries or silently erase real balance history.
+  const removeGroupMember = useCallback((groupId, memberId) => {
+    setBlendGroups((prev) =>
+      prev.map((g) => {
+        if (g.id !== groupId) return g
+        if (g.ledger.some((e) => entryInvolvesMember(e, memberId))) return g
+        return { ...g, members: g.members.filter((m) => m.id !== memberId) }
+      }),
+    )
+  }, [])
+
+  const deleteBlendGroup = useCallback((groupId) => {
+    setBlendGroups((prev) => prev.filter((g) => g.id !== groupId))
+  }, [])
+
   const addBlendExpense = useCallback((groupId, expense) => {
     const id = `bx-new-${_blendEntryId++}`
     setBlendGroups((prev) =>
       prev.map((g) =>
-        g.id === groupId ? { ...g, ledger: [{ id, type: 'expense', date: TODAY, ...expense }, ...g.ledger] } : g,
+        g.id === groupId ? { ...g, ledger: [{ id, type: 'expense', date: TODAY, hiddenFrom: [], ...expense }, ...g.ledger] } : g,
+      ),
+    )
+  }, [])
+
+  // Clears an expense's "hidden from" tag — only the person who created the
+  // surprise can reveal it, so this is only ever reachable from a view the
+  // hidden-from member can't see in the first place.
+  const revealBlendExpense = useCallback((groupId, entryId) => {
+    setBlendGroups((prev) =>
+      prev.map((g) =>
+        g.id === groupId
+          ? { ...g, ledger: g.ledger.map((e) => (e.id === entryId ? { ...e, hiddenFrom: [] } : e)) }
+          : g,
       ),
     )
   }, [])
@@ -218,11 +255,28 @@ export function AppStateProvider({ children }) {
     setBudgets((prev) => (prev.some((b) => b.category === category) ? prev : [...prev, { category, limit }]))
   }, [])
 
+  const [customCategoryVersion, setCustomCategoryVersion] = useState(0)
+
+  // Categories live in a mutable module-level registry (lib/categorize.js)
+  // rather than component state, since categoryMeta()/CATEGORIES are
+  // imported and read directly all over the app. Bumping this counter just
+  // forces every useAppState() consumer to re-render so they pick up the
+  // newly-registered category on their next read of CATEGORIES.
+  const addCustomCategory = useCallback((label, emoji, color) => {
+    const id = addCategory(label, emoji, color)
+    setCustomCategoryVersion((v) => v + 1)
+    return id
+  }, [])
+
   const redeemReward = useCallback(
     (reward) => {
       if (points < reward.cost) return false
       setPoints((p) => p - reward.cost)
       setRedeemed((prev) => [...prev, reward.id])
+      setPointEvents((prev) => [
+        { id: `pt-redeem-${reward.id}`, label: `Redeemed ${reward.title}`, points: -reward.cost, date: TODAY },
+        ...prev,
+      ])
       if (reward.type === 'savings' && reward.savingsAmount) {
         // Feeds the user's first personal goal — the reward doesn't offer
         // a goal picker, so it targets whichever goal is primary/oldest.
@@ -320,13 +374,18 @@ export function AppStateProvider({ children }) {
       dues,
       blendGroups,
       createBlendGroup,
+      renameBlendGroup,
       addGroupMember,
+      removeGroupMember,
+      deleteBlendGroup,
       addBlendExpense,
+      revealBlendExpense,
       addBlendSettlement,
       points,
       pointEvents,
       streak: { currentStreak, longestStreak, history: streakHistory, todayTracked },
       rewardsCatalog: REWARDS_CATALOG,
+      monthlyHistory: MONTHLY_HISTORY,
       redeemed,
       personalGoals,
       groupGoals,
@@ -339,6 +398,7 @@ export function AppStateProvider({ children }) {
       markDuePaid,
       redeemReward,
       earnPoints,
+      addCustomCategory,
       celebration,
       clearCelebration,
       achievedMilestones,
@@ -351,8 +411,12 @@ export function AppStateProvider({ children }) {
       dues,
       blendGroups,
       createBlendGroup,
+      renameBlendGroup,
       addGroupMember,
+      removeGroupMember,
+      deleteBlendGroup,
       addBlendExpense,
+      revealBlendExpense,
       addBlendSettlement,
       celebration,
       clearCelebration,
@@ -375,6 +439,8 @@ export function AppStateProvider({ children }) {
       markDuePaid,
       redeemReward,
       earnPoints,
+      addCustomCategory,
+      customCategoryVersion,
     ],
   )
 

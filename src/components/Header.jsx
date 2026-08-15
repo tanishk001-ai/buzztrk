@@ -17,8 +17,13 @@ export default function Header({ title, subtitle, showBack = true }) {
         <Link to="/profile" className="text-lg" title="Profile">
           👤
         </Link>
-        <Link to="/wrapped" className="text-lg" title="Wrapped recap">
-          ✨
+        <Link
+          to="/recap"
+          title="The Recap — your monthly summary"
+          className="flex items-center gap-1 bg-base-800 border border-base-700 rounded-full pl-2 pr-2.5 py-1 text-xs font-semibold text-base-200 active:scale-95 transition-transform"
+        >
+          <span className="text-sm">✨</span>
+          Recap
         </Link>
         <Link
           to="/rewards"

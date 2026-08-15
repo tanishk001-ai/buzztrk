@@ -46,7 +46,7 @@ export function Pill({ children, className = '', style }) {
   )
 }
 
-export function Button({ children, onClick, variant = 'primary', className = '', type = 'button', disabled }) {
+export function Button({ children, onClick, variant = 'primary', className = '', type = 'button', disabled, style }) {
   const base = 'rounded-full font-semibold px-5 py-3 transition-all active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100'
   const variants = {
     primary: 'bg-cat-groceries text-base-950',
@@ -54,7 +54,7 @@ export function Button({ children, onClick, variant = 'primary', className = '',
     ghost: 'bg-transparent text-base-200 border border-base-600',
   }
   return (
-    <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${variants[variant]} ${className}`}>
+    <button type={type} onClick={onClick} disabled={disabled} style={style} className={`${base} ${variants[variant]} ${className}`}>
       {children}
     </button>
   )

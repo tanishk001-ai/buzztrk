@@ -30,7 +30,7 @@
   /* Income — deliberately its own hue, never mixed with spend categories */
   --color-income: #8CFF6B;
 
-  /* Signature gradient — reserved only for Wrapped / milestone moments */
+  /* Signature gradient — reserved only for The Recap / milestone moments */
   --color-wrap-1: #FF6B5E;
   --color-wrap-2: #B98CFF;
   --color-wrap-3: #4EA8FF;
@@ -74,6 +74,51 @@ body {
 }
 html {
   scrollbar-width: none;
+}
+
+/* Phone-frame presentation for desktop/wide viewports only — the mobile UI
+   itself is untouched below the breakpoint. `contain: layout` on .app-frame
+   makes it the containing block for every `position: fixed` descendant
+   (BottomNav, the Celebration toast, Recap's fullscreen overlay), so they
+   stay pinned to the frame instead of the real browser window. */
+.app-shell {
+  min-height: 100svh;
+}
+.app-frame {
+  min-height: 100svh;
+}
+
+@media (min-width: 768px) {
+  .app-shell {
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.5rem;
+    background: var(--color-base-900);
+  }
+  .app-frame {
+    /* `contain: layout` (needed below to pin fixed-position descendants to
+       the frame) makes the browser unable to size this box from its
+       content, since containment says the box's size must not depend on
+       its children — so width can't be left to flexbox's content-based
+       default here and needs an explicit value alongside max-w-md. */
+    width: 100%;
+    min-height: 0;
+    height: min(860px, calc(100svh - 5rem));
+    border-radius: 2.75rem;
+    border: 1px solid var(--color-base-700);
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+    overflow-y: auto;
+    overflow-x: hidden;
+    contain: layout;
+  }
+  .app-frame::-webkit-scrollbar {
+    display: none;
+  }
+  .app-frame {
+    scrollbar-width: none;
+  }
 }
 
 .font-numeral {

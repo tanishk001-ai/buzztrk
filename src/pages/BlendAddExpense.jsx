@@ -34,11 +34,16 @@ export default function BlendAddExpense() {
   const [splitType, setSplitType] = useState('equal')
   const [customShares, setCustomShares] = useState({})
   const [paymentMethod, setPaymentMethod] = useState('upi')
+  const [hiddenFrom, setHiddenFrom] = useState([])
 
   const amountNum = Number(amount) || 0
 
   const toggleSplit = (id) => {
     setSplitAmong((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  const toggleHidden = (id) => {
+    setHiddenFrom((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   }
 
   const customSum = useMemo(
@@ -74,6 +79,7 @@ export default function BlendAddExpense() {
       splitType,
       shares,
       paymentMethod,
+      hiddenFrom,
     })
     navigate(`/blend/${group.id}`)
   }
@@ -186,6 +192,24 @@ export default function BlendAddExpense() {
               </p>
             )}
           </Card>
+        )}
+
+        {group.members.length > 1 && (
+          <div>
+            <label className="text-xs font-semibold text-base-400 uppercase tracking-wide">Hide from (optional)</label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {group.members
+                .filter((m) => m.id !== 'me')
+                .map((m) => (
+                  <Pill key={m.id} selected={hiddenFrom.includes(m.id)} color="var(--color-cat-emi)" onClick={() => toggleHidden(m.id)}>
+                    🙈 {m.name}
+                  </Pill>
+                ))}
+            </div>
+            <p className="text-base-400 text-xs mt-1">
+              For surprise planning — tagged members won't see this expense anywhere until you reveal it.
+            </p>
+          </div>
         )}
 
         <div>

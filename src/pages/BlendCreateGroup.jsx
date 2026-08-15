@@ -57,6 +57,9 @@ export default function BlendCreateGroup() {
 
         <div>
           <label className="text-xs font-semibold text-base-400 uppercase tracking-wide">Members</label>
+          <p className="text-base-400 text-xs mt-1 mb-2">
+            Just names on a shared list — no invites, accounts, or sign-in. Add anyone, even if they never open the app.
+          </p>
           <Card className="mt-2 flex items-center gap-2 !py-3 mb-2 bg-base-900">
             <span className="text-lg">😎</span>
             <span className="text-sm font-medium text-base-400">You (that's automatic)</span>
@@ -67,7 +70,7 @@ export default function BlendCreateGroup() {
                 <input
                   value={n}
                   onChange={(e) => updateMember(i, e.target.value)}
-                  placeholder={`Friend ${i + 1}'s name`}
+                  placeholder={`Friend ${i + 1}'s name (just a name, no invite)`}
                   className="flex-1 bg-base-800 border border-base-700 rounded-2xl px-4 py-3 text-base-50 placeholder:text-base-400 outline-none focus:border-cat-groceries"
                 />
                 {memberNames.length > 1 && (

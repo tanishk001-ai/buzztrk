@@ -1,7 +1,7 @@
 // Seven "fun stats" layered on top of Blend's existing, already-verified
 // ledger — no new data model, just new views on the same expense/settlement
 // fields (payer, split, amount, description, payment method, timestamps).
-// Same rule as Wrapped governs the copy here: comparisons celebrate, they
+// Same rule as The Recap governs the copy here: comparisons celebrate, they
 // never call anyone out. There is no "slowest to settle" or "biggest
 // debtor" stat, by design.
 

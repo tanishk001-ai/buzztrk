@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Card, Avatar, SectionTitle, EmptyState, ProgressBar, formatINR, formatDate } from '../components/ui'
-import { computePairNet, computeBalancesFor, computeOverallNet, paymentMethodMeta } from '../lib/blendLedger'
+import { computePairNet, computeBalancesFor, computeOverallNet, paymentMethodMeta, visibleLedger } from '../lib/blendLedger'
 import { computeBlendFunStats } from '../lib/blendStats'
 import { computeBlendVibes } from '../lib/blendVibes'
 import { goalProgress } from '../lib/goals'
@@ -67,13 +67,13 @@ export default function BlendGroup() {
     return cardRefsMap.current.get(id)
   }
 
-  const pairNet = useMemo(() => (group ? computePairNet(group.ledger) : []), [group])
+  const myLedger = useMemo(() => (group ? visibleLedger(group.ledger, 'me') : []), [group])
+  const pairNet = useMemo(() => computePairNet(myLedger), [myLedger])
   const myBalances = useMemo(() => computeBalancesFor('me', pairNet), [pairNet])
   const myNet = useMemo(() => computeOverallNet('me', pairNet), [pairNet])
-  const otherPairs = useMemo(() => pairNet.filter(({ a, b }) => a !== 'me' && b !== 'me'), [pairNet])
-  const funStats = useMemo(() => (group ? computeBlendFunStats(group.ledger, group.members) : null), [group])
-  const vibes = useMemo(() => (group ? computeBlendVibes(group.ledger, group.members) : null), [group])
-  const recent = useMemo(() => (group ? [...group.ledger].sort((a, b) => b.date - a.date).slice(0, 5) : []), [group])
+  const funStats = useMemo(() => (group ? computeBlendFunStats(myLedger, group.members) : null), [group, myLedger])
+  const vibes = useMemo(() => (group ? computeBlendVibes(myLedger, group.members) : null), [group, myLedger])
+  const recent = useMemo(() => [...myLedger].sort((a, b) => b.date - a.date).slice(0, 5), [myLedger])
 
   // One pool covering all of Blend's fun stats (Sponsor, Signature Order,
   // Fastest Settler, Duo, Split Style, Comeback, Group Vibe) plus the
@@ -162,10 +162,19 @@ export default function BlendGroup() {
             <p className="text-base-400 text-sm mt-0.5">{group.members.length} members</p>
           </div>
         </div>
-        <div className="flex -space-x-2 shrink-0 mt-1">
-          {group.members.map((m) => (
-            <Avatar key={m.id} name={m.name} color={m.avatarColor} size={32} />
-          ))}
+        <div className="flex items-center gap-2 shrink-0 mt-1">
+          <div className="flex -space-x-2">
+            {group.members.map((m) => (
+              <Avatar key={m.id} name={m.name} color={m.avatarColor} size={32} />
+            ))}
+          </div>
+          <Link
+            to={`/blend/${group.id}/settings`}
+            aria-label="Group settings"
+            className="w-9 h-9 rounded-full bg-base-800 border border-base-700 flex items-center justify-center text-base-200 active:scale-95 transition-transform"
+          >
+            ⚙️
+          </Link>
         </div>
       </header>
 
@@ -232,7 +241,11 @@ export default function BlendGroup() {
               .map((m, i, arr) => {
                 const amt = myBalances[m.id]
                 return (
-                  <div key={m.id} className={`flex items-center gap-3 px-5 py-3.5 ${i !== arr.length - 1 ? 'border-b border-base-700' : ''}`}>
+                  <Link
+                    key={m.id}
+                    to={`/blend/${group.id}/settle-up?with=${m.id}`}
+                    className={`flex items-center gap-3 px-5 py-3.5 active:bg-base-700 transition-colors ${i !== arr.length - 1 ? 'border-b border-base-700' : ''}`}
+                  >
                     <Avatar name={m.name} color={m.avatarColor} />
                     <p className="flex-1 text-sm font-medium">{m.name}</p>
                     <p
@@ -241,32 +254,16 @@ export default function BlendGroup() {
                     >
                       {amt > 0 ? `Owes you ${formatINR(amt)}` : `You owe ${formatINR(-amt)}`}
                     </p>
-                  </div>
+                    <span className="text-base-400 text-xs">›</span>
+                  </Link>
                 )
               })}
           </Card>
         )}
+        <p className="text-base-400 text-xs mt-2">
+          You only see balances between you and each member — not the full group matrix.
+        </p>
       </section>
-
-      {otherPairs.length > 0 && (
-        <section className="px-5 mt-6">
-          <SectionTitle>Other balances in the group</SectionTitle>
-          <Card className="p-0 overflow-hidden">
-            {otherPairs.map(({ a, b, amount }, i) => {
-              const debtor = memberById(group.members, amount > 0 ? a : b)
-              const creditor = memberById(group.members, amount > 0 ? b : a)
-              return (
-                <div key={`${a}-${b}`} className={`flex items-center justify-between px-5 py-3 ${i !== otherPairs.length - 1 ? 'border-b border-base-700' : ''}`}>
-                  <p className="text-sm text-base-200">
-                    {debtor?.name} owes {creditor?.name}
-                  </p>
-                  <p className="font-numeral text-sm font-bold">{formatINR(Math.abs(amount))}</p>
-                </div>
-              )
-            })}
-          </Card>
-        </section>
-      )}
 
       {highlightCards.length > 0 && (
         <section className="px-5 mt-6">
@@ -345,6 +342,7 @@ export default function BlendGroup() {
             if (entry.type === 'expense') {
               const payer = memberById(group.members, entry.paidBy)
               const method = paymentMethodMeta(entry.paymentMethod)
+              const hiddenFromNames = (entry.hiddenFrom || []).map((id) => memberById(group.members, id)?.name).filter(Boolean)
               return (
                 <Card key={entry.id}>
                   <div className="flex items-center gap-3">
@@ -354,6 +352,11 @@ export default function BlendGroup() {
                       <p className="text-xs text-base-400">
                         {payer?.name} paid · {formatDate(entry.date)} · split {Object.keys(entry.shares).length} ways · {method.emoji} {method.label}
                       </p>
+                      {hiddenFromNames.length > 0 && (
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--color-cat-emi)' }}>
+                          🙈 Hidden from {hiddenFromNames.join(', ')}
+                        </p>
+                      )}
                     </div>
                     <p className="font-numeral font-bold text-sm">{formatINR(entry.amount)}</p>
                   </div>

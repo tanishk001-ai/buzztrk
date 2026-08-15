@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { categoryMeta } from '../lib/categorize'
-import { computeMonthlyWrapped } from '../lib/monthlyWrapped'
+import { computeMonthlyRecap } from '../lib/monthlyRecap'
 import ShareButton from '../components/ShareButton'
 
 const GRADIENTS = [
@@ -11,11 +11,11 @@ const GRADIENTS = [
   'linear-gradient(155deg, var(--color-wrap-3), var(--color-wrap-4))',
 ]
 
-export default function Wrapped() {
+export default function Recap() {
   const navigate = useNavigate()
   const { monthSpendByCategory, budgets, today } = useAppState()
   const { month, cards } = useMemo(
-    () => computeMonthlyWrapped({ monthSpendByCategory, budgets, today }),
+    () => computeMonthlyRecap({ monthSpendByCategory, budgets, today }),
     [monthSpendByCategory, budgets, today],
   )
   const [index, setIndex] = useState(0)
@@ -67,8 +67,8 @@ export default function Wrapped() {
       <div className="absolute top-6 left-4 z-10">
         <ShareButton
           targetRef={cardRef}
-          filename={`buzztrk-wrapped-${month}-${index + 1}.png`}
-          shareTitle={`My BuzzTrk ${month} Wrapped`}
+          filename={`buzztrk-recap-${month}-${index + 1}.png`}
+          shareTitle={`My BuzzTrk ${month} Recap`}
           shareText={card.headline.replace(/\n/g, ' ')}
           className="!bg-black/20 !border-black/20 !text-base-950"
         />
@@ -87,7 +87,7 @@ export default function Wrapped() {
       </div>
 
       <div className="px-8 pb-10 text-center">
-        <p className="text-black/60 text-xs font-semibold uppercase tracking-widest">Your {month} Wrapped · tap or swipe</p>
+        <p className="text-black/60 text-xs font-semibold uppercase tracking-widest">Your {month} Recap · tap or swipe</p>
       </div>
     </div>
   )

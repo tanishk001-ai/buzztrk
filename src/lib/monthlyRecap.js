@@ -1,13 +1,12 @@
-// Wrapped, monthly cadence — replaces the old fabricated annual story with
-// a light, quick recap computed from this month's real data. 2-3 cards,
-// same framing rules as always: personal, positive, never comparative
-// against other users. Any comparison here is against the user's own
-// month, not other people.
+// The Recap, monthly cadence — a light, quick recap computed from this
+// month's real data. 2-3 cards, same framing rules as always: personal,
+// positive, never comparative against other users. Any comparison here is
+// against the user's own month, not other people.
 import { categoryMeta } from './categorize'
 
 const NON_SPEND = new Set(['income'])
 
-export function computeMonthlyWrapped({ monthSpendByCategory, budgets, today }) {
+export function computeMonthlyRecap({ monthSpendByCategory, budgets, today }) {
   const monthName = today.toLocaleDateString('en-IN', { month: 'long' })
   const spendEntries = Object.entries(monthSpendByCategory).filter(([cat]) => !NON_SPEND.has(cat))
   const totalSpend = spendEntries.reduce((s, [, amt]) => s + amt, 0)

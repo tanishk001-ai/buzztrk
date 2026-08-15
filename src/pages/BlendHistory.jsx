@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Card, Avatar, EmptyState, formatINR, formatDate } from '../components/ui'
-import { entryInvolvesMember, entryInvolvesPair, paymentMethodMeta } from '../lib/blendLedger'
+import { entryInvolvesMember, entryInvolvesPair, paymentMethodMeta, visibleLedger } from '../lib/blendLedger'
 
 function memberById(members, id) {
   return members.find((m) => m.id === id)
@@ -10,14 +10,16 @@ function memberById(members, id) {
 
 export default function BlendHistory() {
   const { groupId } = useParams()
-  const { blendGroups } = useAppState()
+  const { blendGroups, revealBlendExpense } = useAppState()
   const group = blendGroups.find((g) => g.id === groupId)
   const [personA, setPersonA] = useState('anyone')
   const [personB, setPersonB] = useState('anyone')
 
+  const myLedger = useMemo(() => (group ? visibleLedger(group.ledger, 'me') : []), [group])
+
   const filtered = useMemo(() => {
     if (!group) return []
-    const sorted = [...group.ledger].sort((a, b) => b.date - a.date)
+    const sorted = [...myLedger].sort((a, b) => b.date - a.date)
     if (personA === 'anyone' && personB === 'anyone') return sorted
     if (personA !== 'anyone' && personB !== 'anyone' && personA !== personB) {
       return sorted.filter((e) => entryInvolvesPair(e, personA, personB))
@@ -25,7 +27,7 @@ export default function BlendHistory() {
     const single = personA !== 'anyone' ? personA : personB
     if (single === 'anyone') return sorted
     return sorted.filter((e) => entryInvolvesMember(e, single))
-  }, [group, personA, personB])
+  }, [group, myLedger, personA, personB])
 
   if (!group) {
     return (
@@ -81,6 +83,7 @@ export default function BlendHistory() {
               const payer = memberById(group.members, entry.paidBy)
               const method = paymentMethodMeta(entry.paymentMethod)
               const shareEntries = Object.entries(entry.shares)
+              const hiddenFromNames = (entry.hiddenFrom || []).map((id) => memberById(group.members, id)?.name).filter(Boolean)
               return (
                 <Card key={entry.id}>
                   <div className="flex items-center gap-3">
@@ -104,6 +107,20 @@ export default function BlendHistory() {
                       )
                     })}
                   </div>
+                  {hiddenFromNames.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-base-700 flex items-center justify-between gap-2">
+                      <p className="text-xs" style={{ color: 'var(--color-cat-emi)' }}>
+                        🙈 Hidden from {hiddenFromNames.join(', ')}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => revealBlendExpense(group.id, entry.id)}
+                        className="text-xs font-semibold text-base-400 underline decoration-base-600 shrink-0"
+                      >
+                        Reveal
+                      </button>
+                    </div>
+                  )}
                 </Card>
               )
             }

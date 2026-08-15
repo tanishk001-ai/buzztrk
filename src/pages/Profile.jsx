@@ -50,7 +50,7 @@ export default function Profile() {
         <BackButton fallback="/" className="mt-0.5" />
         <h1 className="font-display text-2xl">Profile</h1>
       </div>
-      <p className="text-base-400 text-sm mb-6">Private to you — never shown to anyone else, never part of Wrapped.</p>
+      <p className="text-base-400 text-sm mb-6">Private to you — never shown to anyone else, never part of The Recap.</p>
 
       <section className="mb-8">
         <Card className="bg-base-800">

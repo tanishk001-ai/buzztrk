@@ -56,9 +56,14 @@ export default function Dashboard() {
       <section className="px-5 mt-8">
         <SectionTitle
           action={
-            <Link to="/advice" className="text-xs font-semibold text-base-400 underline decoration-base-600">
-              Ask for advice
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link to="/trends" className="text-xs font-semibold text-base-400 underline decoration-base-600">
+                Trends
+              </Link>
+              <Link to="/advice" className="text-xs font-semibold text-base-400 underline decoration-base-600">
+                Ask for advice
+              </Link>
+            </div>
           }
         >
           Where it went
@@ -73,16 +78,18 @@ export default function Dashboard() {
               const meta = categoryMeta(category)
               const pct = totalSpend > 0 ? Math.round((amount / totalSpend) * 100) : 0
               return (
-                <Card key={category} className="animate-card-in" style={{ animationDelay: `${i * 40}ms` }}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl">{meta.emoji}</span>
-                    <span className="text-xs font-bold text-base-400">{pct}%</span>
-                  </div>
-                  <p className="font-numeral text-xl font-extrabold mt-2" style={{ color: meta.color }}>
-                    {formatINR(amount)}
-                  </p>
-                  <p className="text-base-400 text-xs mt-0.5">{meta.label}</p>
-                </Card>
+                <Link key={category} to={`/category/${category}`}>
+                  <Card className="animate-card-in" style={{ animationDelay: `${i * 40}ms` }}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl">{meta.emoji}</span>
+                      <span className="text-xs font-bold text-base-400">{pct}%</span>
+                    </div>
+                    <p className="font-numeral text-xl font-extrabold mt-2" style={{ color: meta.color }}>
+                      {formatINR(amount)}
+                    </p>
+                    <p className="text-base-400 text-xs mt-0.5">{meta.label}</p>
+                  </Card>
+                </Link>
               )
             })}
           </div>

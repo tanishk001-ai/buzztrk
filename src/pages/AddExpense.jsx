@@ -2,15 +2,17 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Button, Card } from '../components/ui'
+import NewCategoryForm from '../components/NewCategoryForm'
 import { CATEGORIES } from '../lib/categorize'
 
 export default function AddExpense() {
-  const { addCashExpense, earnPoints, today } = useAppState()
+  const { addCashExpense, earnPoints, today, addCustomCategory } = useAppState()
   const navigate = useNavigate()
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('food')
   const [saved, setSaved] = useState(false)
+  const [creatingCategory, setCreatingCategory] = useState(false)
 
   const submit = (e) => {
     e.preventDefault()
@@ -64,24 +66,44 @@ export default function AddExpense() {
 
           <div>
             <label className="text-xs font-semibold text-base-400 uppercase tracking-wide">Category</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {CATEGORIES.filter((c) => !['transfers', 'emi', 'other', 'income', 'cash_withdrawal'].includes(c.id)).map((c) => (
+            {creatingCategory ? (
+              <Card className="mt-2">
+                <NewCategoryForm
+                  onCancel={() => setCreatingCategory(false)}
+                  onCreate={(label, emoji, color) => {
+                    const id = addCustomCategory(label, emoji, color)
+                    setCategory(id)
+                    setCreatingCategory(false)
+                  }}
+                />
+              </Card>
+            ) : (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {CATEGORIES.filter((c) => !['transfers', 'emi', 'other', 'income', 'cash_withdrawal'].includes(c.id)).map((c) => (
+                  <button
+                    type="button"
+                    key={c.id}
+                    onClick={() => setCategory(c.id)}
+                    className="px-3 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 border transition-colors"
+                    style={{
+                      borderColor: category === c.id ? c.color : 'var(--color-base-700)',
+                      backgroundColor: category === c.id ? `color-mix(in srgb, ${c.color} 20%, transparent)` : 'transparent',
+                      color: category === c.id ? c.color : 'var(--color-base-200)',
+                    }}
+                  >
+                    <span>{c.emoji}</span>
+                    {c.label}
+                  </button>
+                ))}
                 <button
                   type="button"
-                  key={c.id}
-                  onClick={() => setCategory(c.id)}
-                  className="px-3 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 border transition-colors"
-                  style={{
-                    borderColor: category === c.id ? c.color : 'var(--color-base-700)',
-                    backgroundColor: category === c.id ? `color-mix(in srgb, ${c.color} 20%, transparent)` : 'transparent',
-                    color: category === c.id ? c.color : 'var(--color-base-200)',
-                  }}
+                  onClick={() => setCreatingCategory(true)}
+                  className="px-3 py-2 rounded-full text-sm font-semibold border border-dashed border-base-600 text-base-400"
                 >
-                  <span>{c.emoji}</span>
-                  {c.label}
+                  ＋ New category
                 </button>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
 
           <Button type="submit" className="w-full mt-2">
