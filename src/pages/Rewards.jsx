@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
 import { Card, Button, ProgressBar, SectionTitle, Coin, formatINR, formatDate } from '../components/ui'
+import { Icon } from '../components/icons'
 import { goalTotal, goalProgress } from '../lib/goals'
 
 export default function Rewards() {
@@ -65,8 +66,9 @@ export default function Rewards() {
 
       <section className="px-5 mt-4">
         <Link to="/goals">
-          <div className="bg-base-800 border border-base-700 rounded-2xl py-3 text-center text-sm font-semibold active:scale-[0.97] transition-transform">
-            🐷 View savings goals
+          <div className="bg-base-800 border border-base-700 rounded-2xl py-3 flex items-center justify-center gap-1.5 text-sm font-semibold active:scale-[0.97] transition-transform">
+            <Icon name="piggy" size={16} />
+            View savings goals
           </div>
         </Link>
       </section>
@@ -76,8 +78,9 @@ export default function Rewards() {
           <Link to={`/goals/${primaryGoal.id}`}>
             <Card>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold">
-                  {primaryGoal.emoji} {primaryGoal.title}
+                <span className="text-sm font-semibold flex items-center gap-1.5">
+                  <Icon name={primaryGoal.emoji} size={16} />
+                  {primaryGoal.title}
                 </span>
                 <span className="text-xs text-base-400">
                   {formatINR(goalProgress(primaryGoal).total)} / {formatINR(primaryGoal.target)}
@@ -100,7 +103,9 @@ export default function Rewards() {
             const canAfford = points >= r.cost
             return (
               <Card key={r.id} className={`text-center ${justRedeemed === r.id ? 'animate-coin-pop' : ''}`}>
-                <p className="text-3xl mb-2">{r.emoji}</p>
+                <div className="flex justify-center mb-2" style={{ color: 'var(--color-coin)' }}>
+                  <Icon name={r.emoji} size={30} strokeWidth={1.4} />
+                </div>
                 <p className="text-sm font-semibold leading-tight">{r.title}</p>
                 <p className="text-base-400 text-xs mt-1 mb-3">{r.cost} pts</p>
                 <Button

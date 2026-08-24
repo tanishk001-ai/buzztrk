@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
-import { BackButton, Button, Card, EmptyState, SectionTitle, formatINR, formatDate } from '../components/ui'
+import { BackButton, Button, Card, Coin, EmptyState, SectionTitle, formatINR, formatDate } from '../components/ui'
+import { Icon } from '../components/icons'
 import JourneyPath from '../components/JourneyPath'
 import { goalProgress } from '../lib/goals'
 
@@ -17,7 +18,7 @@ export default function GoalDetail() {
     return (
       <div className="px-5 pt-6">
         <BackButton fallback="/goals" />
-        <EmptyState emoji="🤷" title="Goal not found" />
+        <EmptyState icon="search" title="Goal not found" />
       </div>
     )
   }
@@ -41,16 +42,23 @@ export default function GoalDetail() {
     <div className="px-5 pt-6 pb-10">
       <div className="flex items-start gap-3 mb-1">
         <BackButton fallback="/goals" className="mt-0.5" />
-        <h1 className="font-display text-2xl">
-          {goal.emoji} {goal.title}
+        <h1 className="font-display text-2xl flex items-center gap-2">
+          <Icon name={goal.emoji} size={22} />
+          {goal.title}
         </h1>
       </div>
-      <p className="text-base-400 text-sm mb-4">
-        {reached ? 'Goal reached! 🎉' : `${formatINR(remaining)} left to go`}
+      <p className="text-base-400 text-sm mb-4 flex items-center gap-1">
+        {reached ? (
+          <>
+            Goal reached! <Icon name="party" size={14} color="var(--color-income)" />
+          </>
+        ) : (
+          `${formatINR(remaining)} left to go`
+        )}
       </p>
 
       <Card className="mb-4">
-        <JourneyPath pct={pct} emoji="🙂" color="var(--color-income)" destinationEmoji={goal.emoji} />
+        <JourneyPath pct={pct} emoji="smile" color="var(--color-income)" destinationEmoji={goal.emoji} />
         <div className="flex items-baseline justify-between mt-2">
           <p className="font-numeral text-2xl font-bold" style={{ color: 'var(--color-income)' }}>
             {formatINR(total)}
@@ -61,7 +69,9 @@ export default function GoalDetail() {
 
       {justLogged ? (
         <Card className="flex flex-col items-center py-8 mb-4 animate-coin-pop">
-          <div className="text-3xl mb-2">🪙</div>
+          <div className="mb-2">
+            <Coin size={36} />
+          </div>
           <p className="font-bold">+10 points</p>
           <p className="text-base-400 text-sm">Nice — logged it.</p>
         </Card>
@@ -104,7 +114,7 @@ export default function GoalDetail() {
               .sort((a, b) => b.date - a.date)
               .map((c, i, arr) => (
                 <div key={c.id} className={`flex items-center gap-3 px-5 py-3.5 ${i !== arr.length - 1 ? 'border-b border-base-700' : ''}`}>
-                  <span className="text-lg">{c.source === 'reward' ? '🪙' : '💰'}</span>
+                  {c.source === 'reward' ? <Coin size={22} /> : <Icon name="piggy" size={20} color="var(--color-income)" />}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{c.note || (c.source === 'reward' ? 'Reward redemption' : 'Manual contribution')}</p>
                     <p className="text-xs text-base-400">{formatDate(c.date)}</p>

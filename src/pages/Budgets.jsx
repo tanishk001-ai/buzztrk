@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
 import { Button, Card, ProgressBar, formatINR } from '../components/ui'
+import { Icon } from '../components/icons'
 import NewCategoryForm from '../components/NewCategoryForm'
 import { CATEGORIES, categoryMeta } from '../lib/categorize'
 
@@ -43,7 +44,7 @@ export default function Budgets() {
             <Card key={b.category}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">{meta.emoji}</span>
+                  <Icon name={meta.emoji} size={20} color={meta.color} />
                   <span className="font-semibold text-sm">{meta.label}</span>
                 </div>
                 <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ color: statusColor, backgroundColor: `color-mix(in srgb, ${statusColor} 18%, transparent)` }}>
@@ -90,16 +91,17 @@ export default function Budgets() {
                         color: newCategory === c.id ? c.color : 'var(--color-base-200)',
                       }}
                     >
-                      <span>{c.emoji}</span>
+                      <Icon name={c.emoji} size={15} />
                       {c.label}
                     </button>
                   ))}
                   <button
                     type="button"
                     onClick={() => setCreatingCategory(true)}
-                    className="px-3 py-2 rounded-full text-sm font-semibold border border-dashed border-base-600 text-base-400"
+                    className="px-3 py-2 rounded-full text-sm font-semibold border border-dashed border-base-600 text-base-400 flex items-center gap-1.5"
                   >
-                    ＋ New category
+                    <Icon name="plus" size={15} />
+                    New category
                   </button>
                 </div>
               </div>
@@ -131,9 +133,10 @@ export default function Budgets() {
           availableCategories.length > 0 && (
             <button
               onClick={() => setAdding(true)}
-              className="w-full border-2 border-dashed border-base-700 rounded-[1.75rem] py-4 text-sm font-semibold text-base-400 active:scale-[0.98] transition-transform"
+              className="w-full border-2 border-dashed border-base-700 rounded-[1.75rem] py-4 text-sm font-semibold text-base-400 active:scale-[0.98] transition-transform flex items-center justify-center gap-1.5"
             >
-              ＋ Add a budget category
+              <Icon name="plus" size={15} />
+              Add a budget category
             </button>
           )
         )}

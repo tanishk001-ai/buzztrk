@@ -1,11 +1,16 @@
 import { NavLink } from 'react-router-dom'
+import { Icon } from './icons'
+import { Coin } from './ui'
 
 const TABS = [
-  { to: '/', label: 'Home', icon: '🏠', end: true },
-  { to: '/budgets', label: 'Budgets', icon: '🎯' },
-  { to: '/dues', label: 'Dues', icon: '🧾' },
-  { to: '/blend', label: 'Blend', icon: '🤝' },
-  { to: '/rewards', label: 'Rewards', icon: '🪙' },
+  { to: '/', label: 'Home', icon: 'home', end: true },
+  { to: '/budgets', label: 'Budgets', icon: 'target' },
+  { to: '/dues', label: 'Dues', icon: 'receipt' },
+  { to: '/blend', label: 'Blend', icon: 'handshake' },
+  // Rewards keeps the bespoke coin badge (already custom-drawn, not an
+  // emoji) rather than a generic line icon — it's the app's one deliberate
+  // "signature token" mark, same reasoning as Header's points chip.
+  { to: '/rewards', label: 'Rewards', icon: 'coin' },
 ]
 
 export default function BottomNav() {
@@ -23,7 +28,7 @@ export default function BottomNav() {
               }`
             }
           >
-            <span className="text-lg leading-none">{tab.icon}</span>
+            {tab.icon === 'coin' ? <Coin size={20} /> : <Icon name={tab.icon} size={20} />}
             <span className="text-[10px] font-semibold">{tab.label}</span>
           </NavLink>
         ))}

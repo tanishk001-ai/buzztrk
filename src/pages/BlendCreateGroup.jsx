@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Button, Card } from '../components/ui'
+import { Icon } from '../components/icons'
 import { MAX_GROUP_MEMBERS } from '../lib/blendLedger'
 
 export default function BlendCreateGroup() {
@@ -61,7 +62,7 @@ export default function BlendCreateGroup() {
             Just names on a shared list — no invites, accounts, or sign-in. Add anyone, even if they never open the app.
           </p>
           <Card className="mt-2 flex items-center gap-2 !py-3 mb-2 bg-base-900">
-            <span className="text-lg">😎</span>
+            <Icon name="user" size={17} color="var(--color-base-400)" />
             <span className="text-sm font-medium text-base-400">You (that's automatic)</span>
           </Card>
           <div className="space-y-2">
@@ -80,7 +81,7 @@ export default function BlendCreateGroup() {
                     className="w-10 h-10 rounded-full bg-base-800 border border-base-700 flex items-center justify-center text-base-400 shrink-0"
                     aria-label="Remove member"
                   >
-                    ✕
+                    <Icon name="close" size={15} />
                   </button>
                 )}
               </div>
@@ -90,9 +91,10 @@ export default function BlendCreateGroup() {
             <button
               type="button"
               onClick={addMemberField}
-              className="w-full border-2 border-dashed border-base-700 rounded-2xl py-3 text-sm font-semibold text-base-400 mt-2 active:scale-[0.98] transition-transform"
+              className="w-full border-2 border-dashed border-base-700 rounded-2xl py-3 flex items-center justify-center gap-1.5 text-sm font-semibold text-base-400 mt-2 active:scale-[0.98] transition-transform"
             >
-              ＋ Add another member
+              <Icon name="plus" size={15} />
+              Add another member
             </button>
           )}
           <p className="text-base-400 text-xs mt-2">

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Icon } from './icons'
 
 // Screenshot-style export of a card DOM node — not a real social API
 // integration. Lazy-loads modern-screenshot (only paid for when actually
@@ -59,7 +60,21 @@ export default function ShareButton({ targetRef, filename = 'buzztrk-card.png', 
       disabled={status === 'busy'}
       className={`inline-flex items-center gap-1.5 rounded-full bg-base-900/80 border border-base-700 px-3 py-1.5 text-xs font-semibold backdrop-blur active:scale-95 transition-transform disabled:opacity-50 ${className}`}
     >
-      {status === 'busy' ? '…' : status === 'done' ? '✓ Saved' : status === 'error' ? '⚠️ Failed' : `📤 ${label}`}
+      {status === 'busy' ? (
+        '…'
+      ) : status === 'done' ? (
+        <>
+          <Icon name="check" size={13} strokeWidth={2.5} /> Saved
+        </>
+      ) : status === 'error' ? (
+        <>
+          <Icon name="warning" size={13} strokeWidth={2.5} /> Failed
+        </>
+      ) : (
+        <>
+          <Icon name="share" size={13} strokeWidth={2.5} /> {label}
+        </>
+      )}
     </button>
   )
 }

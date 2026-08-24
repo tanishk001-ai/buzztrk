@@ -70,7 +70,7 @@ export function computeAchievements({ achievedMilestones, personalGoals, groupGo
     if (vibes.sponsor?.member === 'me') {
       badges.push({
         id: `sponsor-${group.id}`,
-        emoji: '👑',
+        emoji: 'crown',
         title: `The Sponsor of ${group.name}`,
         sub: `Fronted the most for the group`,
         date: asOf,
@@ -80,7 +80,7 @@ export function computeAchievements({ achievedMilestones, personalGoals, groupGo
     if (vibes.fastestSettler?.member === 'me') {
       badges.push({
         id: `fastest-${group.id}`,
-        emoji: '🏃',
+        emoji: 'running',
         title: `Fastest Settler in ${group.name}`,
         sub: null,
         date: asOf,

@@ -13,7 +13,7 @@ export default function PointsHistory() {
       <p className="text-base-400 text-sm mb-6">Every point earned and spent, in order.</p>
 
       {pointEvents.length === 0 ? (
-        <EmptyState emoji="🪙" title="Nothing yet" sub="Track expenses and stay on budget to start earning." />
+        <EmptyState icon="coin-badge" title="Nothing yet" sub="Track expenses and stay on budget to start earning." />
       ) : (
         <Card className="p-0 overflow-hidden">
           {pointEvents.map((e, i) => (

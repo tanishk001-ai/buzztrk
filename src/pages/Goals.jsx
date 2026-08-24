@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
 import { Button, Card, EmptyState, ProgressBar, formatINR } from '../components/ui'
+import { Icon } from '../components/icons'
 import { goalProgress } from '../lib/goals'
 
-const GOAL_EMOJIS = ['🎯', '💻', '✈️', '🎓', '🏍️', '📱', '🏠', '💍']
+const GOAL_EMOJIS = ['target', 'laptop', 'plane', 'cap', 'car', 'phone', 'home', 'heart']
 
 export default function Goals() {
   const { personalGoals, createPersonalGoal } = useAppState()
@@ -65,13 +66,14 @@ export default function Goals() {
                       type="button"
                       key={em}
                       onClick={() => setEmoji(em)}
-                      className="w-11 h-11 rounded-full text-lg flex items-center justify-center border transition-colors"
+                      className="w-11 h-11 rounded-full flex items-center justify-center border transition-colors"
                       style={{
                         borderColor: emoji === em ? 'var(--color-cat-groceries)' : 'var(--color-base-700)',
                         backgroundColor: emoji === em ? 'color-mix(in srgb, var(--color-cat-groceries) 20%, transparent)' : 'transparent',
+                        color: emoji === em ? 'var(--color-cat-groceries)' : 'var(--color-base-200)',
                       }}
                     >
-                      {em}
+                      <Icon name={em} size={18} />
                     </button>
                   ))}
                 </div>
@@ -89,14 +91,15 @@ export default function Goals() {
         ) : (
           <button
             onClick={() => setAdding(true)}
-            className="w-full bg-cat-groceries text-base-950 rounded-2xl py-3 text-center text-sm font-bold active:scale-[0.97] transition-transform mb-4"
+            className="w-full bg-cat-groceries text-base-950 rounded-2xl py-3 flex items-center justify-center gap-1.5 text-sm font-bold active:scale-[0.97] transition-transform mb-4"
           >
-            ＋ New savings goal
+            <Icon name="plus" size={16} />
+            New savings goal
           </button>
         )}
 
         {personalGoals.length === 0 ? (
-          <EmptyState emoji="🐷" title="No goals yet" sub="Set a target and start logging what you put aside." />
+          <EmptyState icon="piggy" title="No goals yet" sub="Set a target and start logging what you put aside." />
         ) : (
           <div className="space-y-3">
             {personalGoals.map((g) => {
@@ -105,8 +108,9 @@ export default function Goals() {
                 <Link key={g.id} to={`/goals/${g.id}`}>
                   <Card>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold">
-                        {g.emoji} {g.title}
+                      <span className="text-sm font-semibold flex items-center gap-1.5">
+                        <Icon name={g.emoji} size={16} />
+                        {g.title}
                       </span>
                       <span className="text-xs text-base-400">{pct}%</span>
                     </div>

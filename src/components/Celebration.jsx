@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { Coin } from './ui'
+import { Icon } from './icons'
 
 const AUTO_DISMISS_MS = 2600
 const PARTICLE_COUNT = 8
@@ -47,7 +48,7 @@ export default function Celebration({ celebration, onDismiss }) {
         ))}
       </div>
       <div className="mt-2 bg-base-800 border border-base-700 rounded-full pl-3 pr-4 py-2.5 shadow-2xl flex items-center gap-2 animate-card-in">
-        <span className="text-xl">{celebration.emoji}</span>
+        <Icon name={celebration.emoji} size={20} color="var(--color-coin)" />
         <span className="text-sm font-semibold text-base-50">{celebration.message}</span>
       </div>
     </div>

@@ -222,12 +222,14 @@ export const POINT_EVENTS = [
 // spending power would contradict a tool whose whole point is helping users
 // avoid impulsive spend. Rewards are merch, cosmetic flair, or a symbolic
 // boost toward the user's own savings goal (never a real money transfer).
+// `emoji` fields here (and on the goals below) are icon names keyed into
+// src/components/icons.jsx, not literal characters — see categorize.js.
 export const REWARDS_CATALOG = [
-  { id: 'rw-1', title: 'BuzzTrk Sticker Pack', cost: 200, emoji: '✨', type: 'merch' },
-  { id: 'rw-2', title: 'Coin Badge — Profile Flair', cost: 500, emoji: '🪙', type: 'flair' },
-  { id: 'rw-3', title: 'Neon App Theme Unlock', cost: 700, emoji: '🌈', type: 'flair' },
-  { id: 'rw-4', title: 'Savings Goal Boost +₹500', cost: 900, emoji: '🐷', type: 'savings', savingsAmount: 500 },
-  { id: 'rw-5', title: 'BuzzTrk Tote Bag', cost: 1200, emoji: '👜', type: 'merch' },
+  { id: 'rw-1', title: 'BuzzTrk Sticker Pack', cost: 200, emoji: 'sparkles', type: 'merch' },
+  { id: 'rw-2', title: 'Coin Badge — Profile Flair', cost: 500, emoji: 'coin-badge', type: 'flair' },
+  { id: 'rw-3', title: 'Neon App Theme Unlock', cost: 700, emoji: 'palette', type: 'flair' },
+  { id: 'rw-4', title: 'Savings Goal Boost +₹500', cost: 900, emoji: 'piggy', type: 'savings', savingsAmount: 500 },
+  { id: 'rw-5', title: 'BuzzTrk Tote Bag', cost: 1200, emoji: 'bag', type: 'merch' },
 ]
 
 // ── Savings goals — personal + group ─────────────────────────────────────────
@@ -237,7 +239,7 @@ export const PERSONAL_GOALS = [
   {
     id: 'goal-laptop',
     title: 'New Laptop Fund',
-    emoji: '💻',
+    emoji: 'laptop',
     target: 5000,
     createdAt: D(Y, M, 2),
     contributions: [
@@ -252,7 +254,7 @@ export const GROUP_GOALS = [
     id: 'ggoal-next-trip',
     groupId: 'grp-weekend-crew',
     title: 'Next Trip Fund',
-    emoji: '🏝️',
+    emoji: 'compass',
     target: 10000,
     createdAt: D(Y, M, 5),
     contributions: [

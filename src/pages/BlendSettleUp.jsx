@@ -46,7 +46,7 @@ export default function BlendSettleUp() {
     return (
       <div className="px-5 pt-6">
         <BackButton fallback="/blend" />
-        <EmptyState emoji="🤷" title="Group not found" />
+        <EmptyState icon="search" title="Group not found" />
       </div>
     )
   }

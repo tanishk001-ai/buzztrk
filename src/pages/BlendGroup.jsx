@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Card, Avatar, SectionTitle, EmptyState, ProgressBar, formatINR, formatDate } from '../components/ui'
+import { Icon } from '../components/icons'
 import { computePairNet, computeBalancesFor, computeOverallNet, paymentMethodMeta, visibleLedger } from '../lib/blendLedger'
 import { computeBlendFunStats } from '../lib/blendStats'
 import { computeBlendVibes } from '../lib/blendVibes'
@@ -88,7 +89,7 @@ export default function BlendGroup() {
     if (vibes.sponsor) {
       cards.push({
         id: 'sponsor',
-        emoji: '👑',
+        emoji: 'crown',
         title: `${subjectIs(vibes.sponsor.member, vibes.sponsor.name)} The Sponsor`,
         sub: `Fronted ${formatINR(vibes.sponsor.amount)} so far`,
         shareable: true,
@@ -100,21 +101,21 @@ export default function BlendGroup() {
     if (vibes.fastestSettler) {
       cards.push({
         id: 'fastest',
-        emoji: '🏃',
+        emoji: 'running',
         title: `${vibes.fastestSettler.name} — Fastest Settler`,
         sub: vibes.fastestSettler.avgDays === 0 ? 'Settles up the same day' : `Settles up in ~${vibes.fastestSettler.avgDays}d on average`,
       })
     }
     if (vibes.duo) {
-      cards.push({ id: 'duo', emoji: '👯', title: `${vibes.duo.nameA} & ${vibes.duo.nameB}`, sub: `Duo of the Month — ${vibes.duo.count} expenses together` })
+      cards.push({ id: 'duo', emoji: 'users', title: `${vibes.duo.nameA} & ${vibes.duo.nameB}`, sub: `Duo of the Month — ${vibes.duo.count} expenses together` })
     }
     if (vibes.splitStyles?.length) {
-      cards.push({ id: 'split', emoji: '🎯', title: 'Split Styles', sub: summarizeSplitStyles(vibes.splitStyles) })
+      cards.push({ id: 'split', emoji: 'target', title: 'Split Styles', sub: summarizeSplitStyles(vibes.splitStyles) })
     }
     if (vibes.comeback) {
       cards.push({
         id: 'comeback',
-        emoji: '🎉',
+        emoji: 'party',
         title: `${subjectIs(vibes.comeback.member, vibes.comeback.name)} back on track!`,
         sub: `The Comeback — "${vibes.comeback.description}"`,
       })
@@ -122,7 +123,7 @@ export default function BlendGroup() {
     if (funStats?.paysFirstStreak) {
       cards.push({
         id: 'pays-first',
-        emoji: '⚡',
+        emoji: 'zap',
         title: `${memberById(group.members, funStats.paysFirstStreak.member)?.name} pays first`,
         sub: `${funStats.paysFirstStreak.count} times running`,
       })
@@ -130,7 +131,7 @@ export default function BlendGroup() {
     if (funStats?.paysLastStreak) {
       cards.push({
         id: 'pays-last',
-        emoji: '🐢',
+        emoji: 'footprints',
         title: `${memberById(group.members, funStats.paysLastStreak.member)?.name} pays last`,
         sub: `${funStats.paysLastStreak.count} times running`,
       })
@@ -145,7 +146,7 @@ export default function BlendGroup() {
     return (
       <div className="px-5 pt-6">
         <BackButton fallback="/blend" />
-        <EmptyState emoji="🤷" title="Group not found" sub="It may have been removed." />
+        <EmptyState icon="search" title="Group not found" sub="It may have been removed." />
       </div>
     )
   }
@@ -173,7 +174,7 @@ export default function BlendGroup() {
             aria-label="Group settings"
             className="w-9 h-9 rounded-full bg-base-800 border border-base-700 flex items-center justify-center text-base-200 active:scale-95 transition-transform"
           >
-            ⚙️
+            <Icon name="settings" size={17} />
           </Link>
         </div>
       </header>
@@ -183,8 +184,9 @@ export default function BlendGroup() {
           {groupGoal ? (
             <Card>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold">
-                  {groupGoal.emoji} {groupGoal.title}
+                <span className="text-sm font-semibold flex items-center gap-1.5">
+                  <Icon name={groupGoal.emoji} size={16} />
+                  {groupGoal.title}
                 </span>
                 <span className="text-xs text-base-400">{goalProgress(groupGoal).pct}%</span>
               </div>
@@ -195,8 +197,9 @@ export default function BlendGroup() {
               </p>
             </Card>
           ) : (
-            <div className="border-2 border-dashed border-base-700 rounded-[1.75rem] py-3 text-center text-sm font-semibold text-base-400 active:scale-[0.98] transition-transform">
-              🐷 Set a group savings goal
+            <div className="border-2 border-dashed border-base-700 rounded-[1.75rem] py-3 flex items-center justify-center gap-1.5 text-sm font-semibold text-base-400 active:scale-[0.98] transition-transform">
+              <Icon name="piggy" size={16} />
+              Set a group savings goal
             </div>
           )}
         </Link>
@@ -216,8 +219,9 @@ export default function BlendGroup() {
 
         <div className="flex gap-2 mt-4">
           <Link to={`/blend/${group.id}/add-expense`} className="flex-1">
-            <div className="bg-cat-groceries text-base-950 rounded-2xl py-3 text-center text-sm font-bold active:scale-[0.97] transition-transform">
-              ＋ Add expense
+            <div className="bg-cat-groceries text-base-950 rounded-2xl py-3 flex items-center justify-center gap-1.5 text-sm font-bold active:scale-[0.97] transition-transform">
+              <Icon name="plus" size={16} />
+              Add expense
             </div>
           </Link>
           <Link to={`/blend/${group.id}/settle-up`} className="flex-1">
@@ -287,7 +291,7 @@ export default function BlendGroup() {
                   className="rounded-[1.75rem] p-4 flex items-center gap-3 relative"
                   style={{ backgroundColor: `color-mix(in srgb, ${card.color} 16%, var(--color-base-800))`, border: `1px solid color-mix(in srgb, ${card.color} 35%, transparent)` }}
                 >
-                  <span className="text-3xl">{card.emoji}</span>
+                  <Icon name={card.emoji} size={26} color={card.color} />
                   <div className="flex-1">
                     <p className="text-[10px] font-bold uppercase tracking-wide text-base-400">{card.title}</p>
                     <p className="font-display text-lg" style={{ color: card.color }}>
@@ -299,13 +303,13 @@ export default function BlendGroup() {
                       targetRef={getCardRef(card.id)}
                       filename={`${group.name}-vibe.png`}
                       shareTitle={`${group.name} on BuzzTrk`}
-                      shareText={`We're a ${card.sub} ${card.emoji}`}
+                      shareText={`We're a ${card.sub}`}
                     />
                   </div>
                 </div>
               ) : (
                 <div key={card.id} ref={card.shareable ? getCardRef(card.id) : undefined} className="bg-base-800 rounded-[1.75rem] p-4 flex items-center gap-3 relative">
-                  <span className="text-2xl shrink-0">{card.emoji}</span>
+                  <Icon name={card.emoji} size={22} className="shrink-0" color="var(--color-cat-groceries)" />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm">{card.title}</p>
                     <p className="text-base-400 text-xs mt-0.5">{card.sub}</p>
@@ -316,7 +320,7 @@ export default function BlendGroup() {
                         targetRef={getCardRef(card.id)}
                         filename={`${group.name}-${card.id}.png`}
                         shareTitle={`${group.name} on BuzzTrk`}
-                        shareText={`${card.title} ${card.emoji}`}
+                        shareText={card.title}
                       />
                     </div>
                   )}
@@ -349,12 +353,15 @@ export default function BlendGroup() {
                     <Avatar name={payer?.name} color={payer?.avatarColor} size={36} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">{entry.description}</p>
-                      <p className="text-xs text-base-400">
-                        {payer?.name} paid · {formatDate(entry.date)} · split {Object.keys(entry.shares).length} ways · {method.emoji} {method.label}
+                      <p className="text-xs text-base-400 flex items-center gap-1 flex-wrap">
+                        {payer?.name} paid · {formatDate(entry.date)} · split {Object.keys(entry.shares).length} ways ·
+                        <Icon name={method.emoji} size={11} className="inline-block" />
+                        {method.label}
                       </p>
                       {hiddenFromNames.length > 0 && (
-                        <p className="text-xs mt-0.5" style={{ color: 'var(--color-cat-emi)' }}>
-                          🙈 Hidden from {hiddenFromNames.join(', ')}
+                        <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: 'var(--color-cat-emi)' }}>
+                          <Icon name="eye-off" size={12} />
+                          Hidden from {hiddenFromNames.join(', ')}
                         </p>
                       )}
                     </div>
@@ -368,7 +375,7 @@ export default function BlendGroup() {
             return (
               <Card key={entry.id} className="bg-base-900">
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">✅</span>
+                  <Icon name="check-circle" size={22} color="var(--color-good)" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">
                       {from?.name} settled up with {to?.name}

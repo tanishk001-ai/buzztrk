@@ -12,40 +12,42 @@ const MIN_TRANSACTIONS_FOR_RESULT = 10
 // they're just bills everyone has.
 const NON_DISCRETIONARY = new Set(['rent', 'emi', 'cash_withdrawal', 'transfers', 'income', 'other'])
 
+// `emoji` fields are icon names (src/components/icons.jsx), same
+// convention as categorize.js.
 const PERSONALITY_TYPES = {
   planner: {
     label: 'The Planner',
-    emoji: '📋',
+    emoji: 'clipboard',
     color: 'var(--color-cat-groceries)',
     tagline: 'You budget it, then you stick to it.',
   },
   spontaneous: {
     label: 'The Spontaneous Spender',
-    emoji: '✨',
+    emoji: 'sparkles',
     color: 'var(--color-cat-shopping)',
     tagline: 'Small purchases, big variety — you follow the moment.',
   },
   saver: {
     label: 'The Saver',
-    emoji: '🐷',
+    emoji: 'piggy',
     color: 'var(--color-income)',
     tagline: "You're already paying your future self first.",
   },
   weekendWarrior: {
     label: 'Weekend Warrior',
-    emoji: '🎉',
+    emoji: 'party',
     color: 'var(--color-cat-entertainment)',
     tagline: 'Weekdays are for saving, weekends are for living.',
   },
   foodie: {
     label: 'The Foodie',
-    emoji: '🍔',
+    emoji: 'utensils',
     color: 'var(--color-cat-food)',
     tagline: 'Food is where your money — and your heart — goes.',
   },
   socialite: {
     label: 'The Socialite',
-    emoji: '🤝',
+    emoji: 'handshake',
     color: 'var(--color-cat-transport)',
     tagline: 'Your money moves with your people.',
   },

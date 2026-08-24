@@ -3,6 +3,7 @@ import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
 import { Card, SectionTitle, formatINR } from '../components/ui'
 import { BarChart, PieChart } from '../components/charts'
+import { Icon } from '../components/icons'
 import { computeMonthlySeries, topCategoriesAcross } from '../lib/trends'
 import { categoryMeta } from '../lib/categorize'
 
@@ -81,7 +82,7 @@ export default function Trends() {
                     color: selected ? meta.color : 'var(--color-base-200)',
                   }}
                 >
-                  <span>{meta.emoji}</span>
+                  <Icon name={meta.emoji} size={15} />
                   {meta.label}
                 </button>
               )

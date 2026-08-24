@@ -3,7 +3,21 @@ import { Link } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
 import { Card, SectionTitle, formatINR, formatDate } from '../components/ui'
+import { Icon, IconBadge } from '../components/icons'
 import { categoryMeta } from '../lib/categorize'
+
+function ActionLink({ to, icon, color, children }) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center gap-1.5 rounded-full pl-2 pr-3 py-1.5 text-xs font-bold active:scale-95 transition-transform"
+      style={{ backgroundColor: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
+    >
+      <Icon name={icon} size={14} />
+      {children}
+    </Link>
+  )
+}
 
 export default function Dashboard() {
   const { transactions, monthSpendByCategory, today } = useAppState()
@@ -36,19 +50,22 @@ export default function Dashboard() {
         <p className="font-display text-5xl font-numeral text-base-50 mt-1">{formatINR(totalSpend)}</p>
         <div className="flex gap-2 mt-4">
           <Link to="/add-expense" className="flex-1">
-            <div className="bg-base-800 border border-base-700 rounded-2xl py-3 text-center text-sm font-semibold active:scale-[0.97] transition-transform">
-              ＋ Add cash expense
+            <div className="bg-base-800 border border-base-700 rounded-2xl py-3 flex items-center justify-center gap-1.5 text-sm font-semibold active:scale-[0.97] transition-transform">
+              <Icon name="plus" size={16} />
+              Add cash expense
             </div>
           </Link>
           <Link to="/upload" className="flex-1">
-            <div className="bg-cat-groceries text-base-950 rounded-2xl py-3 text-center text-sm font-bold active:scale-[0.97] transition-transform">
-              ⇪ Upload statement
+            <div className="bg-cat-groceries text-base-950 rounded-2xl py-3 flex items-center justify-center gap-1.5 text-sm font-bold active:scale-[0.97] transition-transform">
+              <Icon name="share" size={16} />
+              Upload statement
             </div>
           </Link>
         </div>
         <Link to="/personality">
-          <div className="mt-2 bg-base-800 border border-base-700 rounded-2xl py-3 text-center text-sm font-semibold active:scale-[0.97] transition-transform">
-            ✨ What's your spending personality?
+          <div className="mt-2 bg-base-800 border border-base-700 rounded-2xl py-3 flex items-center justify-center gap-1.5 text-sm font-semibold active:scale-[0.97] transition-transform">
+            <Icon name="sparkles" size={16} />
+            What's your spending personality?
           </div>
         </Link>
       </section>
@@ -56,13 +73,13 @@ export default function Dashboard() {
       <section className="px-5 mt-8">
         <SectionTitle
           action={
-            <div className="flex items-center gap-3">
-              <Link to="/trends" className="text-xs font-semibold text-base-400 underline decoration-base-600">
+            <div className="flex items-center gap-2">
+              <ActionLink to="/trends" icon="trending-up" color="var(--color-cat-transport)">
                 Trends
-              </Link>
-              <Link to="/advice" className="text-xs font-semibold text-base-400 underline decoration-base-600">
-                Ask for advice
-              </Link>
+              </ActionLink>
+              <ActionLink to="/advice" icon="compass" color="var(--color-cat-subs)">
+                Advice
+              </ActionLink>
             </div>
           }
         >
@@ -81,7 +98,7 @@ export default function Dashboard() {
                 <Link key={category} to={`/category/${category}`}>
                   <Card className="animate-card-in" style={{ animationDelay: `${i * 40}ms` }}>
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl">{meta.emoji}</span>
+                      <Icon name={meta.emoji} size={22} color={meta.color} />
                       <span className="text-xs font-bold text-base-400">{pct}%</span>
                     </div>
                     <p className="font-numeral text-xl font-extrabold mt-2" style={{ color: meta.color }}>
@@ -97,7 +114,15 @@ export default function Dashboard() {
       </section>
 
       <section className="px-5 mt-8">
-        <SectionTitle>Recent activity</SectionTitle>
+        <SectionTitle
+          action={
+            <Link to="/history" className="text-xs font-semibold text-base-400 underline decoration-base-600">
+              Full history
+            </Link>
+          }
+        >
+          Recent activity
+        </SectionTitle>
         <Card className="p-0 overflow-hidden">
           {recent.map((t, i) => {
             const meta = categoryMeta(t.category)
@@ -106,12 +131,7 @@ export default function Dashboard() {
                 key={t.id}
                 className={`flex items-center gap-3 px-5 py-3.5 ${i !== recent.length - 1 ? 'border-b border-base-700' : ''}`}
               >
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0"
-                  style={{ backgroundColor: `color-mix(in srgb, ${meta.color} 25%, transparent)` }}
-                >
-                  {meta.emoji}
-                </div>
+                <IconBadge name={meta.emoji} color={meta.color} size={36} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{t.description}</p>
                   <p className="text-xs text-base-400">

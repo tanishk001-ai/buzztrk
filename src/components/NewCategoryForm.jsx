@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Button } from './ui'
+import { Icon } from './icons'
 import { CUSTOM_CATEGORY_COLORS } from '../lib/categorize'
 
-const EMOJI_PRESETS = ['🏷️', '🎮', '📚', '✈️', '🐾', '🎁', '⚽', '💅', '🧸', '🖥️', '🎨', '🍿']
+const EMOJI_PRESETS = ['tag', 'gift', 'palette', 'heart', 'plane', 'bag', 'film', 'trophy', 'sparkles', 'basket', 'piggy', 'ticket']
 
 export default function NewCategoryForm({ onCreate, onCancel }) {
   const [label, setLabel] = useState('')
@@ -35,13 +36,14 @@ export default function NewCategoryForm({ onCreate, onCancel }) {
               type="button"
               key={e}
               onClick={() => setEmoji(e)}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-lg border transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center border transition-colors"
               style={{
                 borderColor: emoji === e ? 'var(--color-cat-groceries)' : 'var(--color-base-700)',
                 backgroundColor: emoji === e ? 'color-mix(in srgb, var(--color-cat-groceries) 20%, transparent)' : 'transparent',
+                color: emoji === e ? 'var(--color-cat-groceries)' : 'var(--color-base-200)',
               }}
             >
-              {e}
+              <Icon name={e} size={16} />
             </button>
           ))}
         </div>

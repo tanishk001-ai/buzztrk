@@ -4,6 +4,7 @@ import { useAppState } from '../state/AppState'
 import { categoryMeta } from '../lib/categorize'
 import { computeMonthlyRecap } from '../lib/monthlyRecap'
 import ShareButton from '../components/ShareButton'
+import { Icon } from '../components/icons'
 
 const GRADIENTS = [
   'linear-gradient(155deg, var(--color-wrap-1), var(--color-wrap-2))',
@@ -74,13 +75,17 @@ export default function Recap() {
         />
       </div>
 
-      <button onClick={() => navigate('/')} className="absolute top-6 right-4 text-black/70 font-bold text-lg z-10">
-        ✕
+      <button onClick={() => navigate('/')} className="absolute top-6 right-4 text-black/70 z-10">
+        <Icon name="close" size={22} strokeWidth={2.5} />
       </button>
 
       <div className="flex-1 flex" onClick={(e) => { const w = e.currentTarget.clientWidth; go(e.clientX < w / 2 ? -1 : 1) }}>
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-          {card.kind === 'top-category' && <div className="text-5xl mb-4">{categoryMeta(card.category).emoji}</div>}
+          {card.kind === 'top-category' && (
+            <div className="mb-4">
+              <Icon name={categoryMeta(card.category).emoji} size={52} strokeWidth={1.4} />
+            </div>
+          )}
           <p className="font-display whitespace-pre-line leading-[0.95] text-4xl">{card.headline}</p>
           <p className="mt-4 text-black/80 font-medium max-w-xs">{card.sub}</p>
         </div>

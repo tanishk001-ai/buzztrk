@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Button, Card, Avatar, EmptyState } from '../components/ui'
+import { Icon } from '../components/icons'
 import { MAX_GROUP_MEMBERS, entryInvolvesMember } from '../lib/blendLedger'
 
 export default function BlendGroupSettings() {
@@ -18,7 +19,7 @@ export default function BlendGroupSettings() {
     return (
       <div className="px-5 pt-6">
         <BackButton fallback="/blend" />
-        <EmptyState emoji="🤷" title="Group not found" />
+        <EmptyState icon="search" title="Group not found" />
       </div>
     )
   }
@@ -90,7 +91,7 @@ export default function BlendGroupSettings() {
                     title={hasHistory ? "Can't remove — already part of the ledger" : 'Remove member'}
                     className="w-8 h-8 rounded-full bg-base-900 border border-base-700 flex items-center justify-center text-base-400 shrink-0 disabled:opacity-30 active:scale-95 transition-transform"
                   >
-                    ✕
+                    <Icon name="close" size={13} />
                   </button>
                 )}
               </div>

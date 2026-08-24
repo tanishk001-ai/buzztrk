@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
 import { Card, Button, EmptyState } from '../components/ui'
+import { Icon } from '../components/icons'
 import { generateAdvice } from '../data/mockData'
 
 const TONE_COLOR = {
@@ -21,7 +22,9 @@ export default function Advice() {
       <section className="px-5 mt-4">
         {insights === null ? (
           <Card className="flex flex-col items-center text-center py-10">
-            <div className="text-4xl mb-3">🔍</div>
+            <div className="text-base-400 mb-3">
+              <Icon name="compass" size={40} strokeWidth={1.4} />
+            </div>
             <p className="font-semibold mb-1">See your patterns, clearly</p>
             <p className="text-base-400 text-sm mb-5 max-w-xs">
               Factual, non-judgmental. Just what's actually happening with your money this month.
@@ -31,7 +34,7 @@ export default function Advice() {
             </Button>
           </Card>
         ) : insights.length === 0 ? (
-          <EmptyState emoji="✅" title="Nothing to flag" sub="Your spending looks steady this month." />
+          <EmptyState icon="check-circle" title="Nothing to flag" sub="Your spending looks steady this month." />
         ) : (
           <div className="space-y-3">
             {insights.map((i) => (

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Button, Card, formatINR, formatDate } from '../components/ui'
+import { Icon } from '../components/icons'
 import { categorize, categoryMeta } from '../lib/categorize'
 
 export default function UploadStatement() {
@@ -52,7 +53,9 @@ export default function UploadStatement() {
 
       {status !== 'done' && (
         <Card className="border-2 border-dashed border-base-700 bg-transparent flex flex-col items-center py-10 text-center">
-          <div className="text-4xl mb-3">📄</div>
+          <div className="text-base-400 mb-3">
+            <Icon name="document" size={40} strokeWidth={1.4} />
+          </div>
           <p className="font-semibold mb-1">
             {status === 'parsing' ? 'Reading your statement…' : 'Drop a bank statement PDF'}
           </p>
@@ -117,7 +120,7 @@ export default function UploadStatement() {
                     key={i}
                     className={`flex items-center gap-3 px-5 py-3 ${i !== result.transactions.length - 1 ? 'border-b border-base-700' : ''}`}
                   >
-                    <span className="text-lg">{meta.emoji}</span>
+                    <Icon name={meta.emoji} size={18} color={meta.color} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{t.description}</p>
                       <p className="text-xs text-base-400">{formatDate(t.date)} · {meta.label}</p>

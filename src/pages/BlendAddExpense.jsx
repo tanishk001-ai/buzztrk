@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Button, Card, EmptyState } from '../components/ui'
+import { Icon } from '../components/icons'
 import { PAYMENT_METHODS, splitEqually, customSplitSum, isValidCustomSplit } from '../lib/blendLedger'
 
 function Pill({ selected, color, onClick, children }) {
@@ -9,7 +10,7 @@ function Pill({ selected, color, onClick, children }) {
     <button
       type="button"
       onClick={onClick}
-      className="px-3 py-1.5 rounded-full text-sm font-semibold border transition-colors"
+      className="px-3 py-1.5 rounded-full text-sm font-semibold border transition-colors inline-flex items-center gap-1.5"
       style={{
         borderColor: selected ? color : 'var(--color-base-700)',
         backgroundColor: selected ? `color-mix(in srgb, ${color} 20%, transparent)` : 'transparent',
@@ -59,7 +60,7 @@ export default function BlendAddExpense() {
     return (
       <div className="px-5 pt-6">
         <BackButton fallback="/blend" />
-        <EmptyState emoji="🤷" title="Group not found" />
+        <EmptyState icon="search" title="Group not found" />
       </div>
     )
   }
@@ -202,7 +203,8 @@ export default function BlendAddExpense() {
                 .filter((m) => m.id !== 'me')
                 .map((m) => (
                   <Pill key={m.id} selected={hiddenFrom.includes(m.id)} color="var(--color-cat-emi)" onClick={() => toggleHidden(m.id)}>
-                    🙈 {m.name}
+                    <Icon name="eye-off" size={13} />
+                    {m.name}
                   </Pill>
                 ))}
             </div>
@@ -217,7 +219,8 @@ export default function BlendAddExpense() {
           <div className="flex flex-wrap gap-2 mt-2">
             {PAYMENT_METHODS.map((pm) => (
               <Pill key={pm.id} selected={paymentMethod === pm.id} color="var(--color-cat-transport)" onClick={() => setPaymentMethod(pm.id)}>
-                {pm.emoji} {pm.label}
+                <Icon name={pm.emoji} size={13} />
+                {pm.label}
               </Pill>
             ))}
           </div>

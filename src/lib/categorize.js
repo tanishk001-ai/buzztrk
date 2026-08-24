@@ -1,24 +1,30 @@
 // New for BuzzTrk (not present in the original SGC accountant tool):
 // maps a cleaned narration/merchant string to a personal spend category.
 
+// `emoji` fields throughout this file (and the rest of the app's data
+// model — goals, rewards, badges, dues) hold an icon *name* keyed into
+// src/components/icons.jsx, not a literal emoji character. The field name
+// stuck around from before the icon system existed; renaming it everywhere
+// wasn't worth the extra diff for a value that's always rendered the same
+// way, via <Icon name={x.emoji} />.
 export const CATEGORIES = [
   // Income is deliberately visually distinct (gold, not a spend hue) and is
   // never counted toward "spent this month" — Dashboard/Budgets already
   // filter to type === 'debit', so income naturally falls out of spend totals.
-  { id: 'income', label: 'Income', color: 'var(--color-income)', emoji: '💰' },
-  { id: 'food', label: 'Eating Out', color: 'var(--color-cat-food)', emoji: '🍔' },
-  { id: 'groceries', label: 'Groceries', color: 'var(--color-cat-groceries)', emoji: '🛒' },
-  { id: 'transport', label: 'Transport', color: 'var(--color-cat-transport)', emoji: '🚕' },
-  { id: 'shopping', label: 'Shopping', color: 'var(--color-cat-shopping)', emoji: '🛍️' },
-  { id: 'subs', label: 'Subscriptions', color: 'var(--color-cat-subs)', emoji: '📺' },
-  { id: 'bills', label: 'Bills & Recharges', color: 'var(--color-cat-bills)', emoji: '🧾' },
-  { id: 'rent', label: 'Rent & Housing', color: 'var(--color-cat-rent)', emoji: '🏠' },
-  { id: 'entertainment', label: 'Entertainment', color: 'var(--color-cat-entertainment)', emoji: '🎬' },
-  { id: 'health', label: 'Health', color: 'var(--color-cat-health)', emoji: '💊' },
-  { id: 'cash_withdrawal', label: 'Cash Withdrawal', color: 'var(--color-cat-cash)', emoji: '🏧' },
-  { id: 'transfers', label: 'Transfers', color: 'var(--color-cat-transfers)', emoji: '↔️' },
-  { id: 'emi', label: 'EMI & Dues', color: 'var(--color-cat-emi)', emoji: '💳' },
-  { id: 'other', label: 'Other', color: 'var(--color-cat-other)', emoji: '❔' },
+  { id: 'income', label: 'Income', color: 'var(--color-income)', emoji: 'trending-up' },
+  { id: 'food', label: 'Eating Out', color: 'var(--color-cat-food)', emoji: 'utensils' },
+  { id: 'groceries', label: 'Groceries', color: 'var(--color-cat-groceries)', emoji: 'basket' },
+  { id: 'transport', label: 'Transport', color: 'var(--color-cat-transport)', emoji: 'car' },
+  { id: 'shopping', label: 'Shopping', color: 'var(--color-cat-shopping)', emoji: 'bag' },
+  { id: 'subs', label: 'Subscriptions', color: 'var(--color-cat-subs)', emoji: 'tv' },
+  { id: 'bills', label: 'Bills & Recharges', color: 'var(--color-cat-bills)', emoji: 'receipt' },
+  { id: 'rent', label: 'Rent & Housing', color: 'var(--color-cat-rent)', emoji: 'home' },
+  { id: 'entertainment', label: 'Entertainment', color: 'var(--color-cat-entertainment)', emoji: 'film' },
+  { id: 'health', label: 'Health', color: 'var(--color-cat-health)', emoji: 'pulse' },
+  { id: 'cash_withdrawal', label: 'Cash Withdrawal', color: 'var(--color-cat-cash)', emoji: 'banknote' },
+  { id: 'transfers', label: 'Transfers', color: 'var(--color-cat-transfers)', emoji: 'swap' },
+  { id: 'emi', label: 'EMI & Dues', color: 'var(--color-cat-emi)', emoji: 'card' },
+  { id: 'other', label: 'Other', color: 'var(--color-cat-other)', emoji: 'tag' },
 ]
 
 export const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]))
@@ -50,7 +56,7 @@ export function addCategory(label, emoji, color) {
   while (CATEGORY_MAP[id]) {
     id = `${slugify(trimmed)}_${suffix++}`
   }
-  const category = { id, label: trimmed, color: color || CUSTOM_CATEGORY_COLORS[CATEGORIES.length % CUSTOM_CATEGORY_COLORS.length], emoji: emoji || '🏷️', custom: true }
+  const category = { id, label: trimmed, color: color || CUSTOM_CATEGORY_COLORS[CATEGORIES.length % CUSTOM_CATEGORY_COLORS.length], emoji: emoji || 'tag', custom: true }
   CATEGORIES.push(category)
   CATEGORY_MAP[id] = category
   return id

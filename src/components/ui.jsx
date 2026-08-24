@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { Icon } from './icons'
 
 export function BackButton({ fallback = '/', className = '' }) {
   const navigate = useNavigate()
@@ -109,10 +110,12 @@ export function SectionTitle({ children, action }) {
   )
 }
 
-export function EmptyState({ emoji = '🌱', title, sub }) {
+export function EmptyState({ icon = 'sparkles', title, sub }) {
   return (
     <div className="flex flex-col items-center justify-center text-center py-10 px-6">
-      <div className="text-4xl mb-3 animate-float-slow">{emoji}</div>
+      <div className="text-base-400 mb-3 animate-float-slow">
+        <Icon name={icon} size={40} strokeWidth={1.4} />
+      </div>
       <p className="font-semibold text-base-50">{title}</p>
       {sub && <p className="text-base-400 text-sm mt-1">{sub}</p>}
     </div>

@@ -22,22 +22,24 @@ const PURPOSE_RULES = [
   { id: 'shopping', keywords: ['grocery', 'groceries', 'shopping', 'supplies'] },
 ]
 
+// `emoji` fields are icon names (src/components/icons.jsx), same
+// convention as categorize.js.
 const PURPOSE_VIBE_LABELS = {
-  food: { label: 'Biryani Nights', emoji: '🍗' },
-  travel: { label: 'Wanderlust', emoji: '✈️' },
-  stay: { label: 'Cozy Stays', emoji: '🏨' },
-  entertainment: { label: 'Movie Marathons', emoji: '🎬' },
-  transport: { label: 'Cab Rides', emoji: '🚕' },
-  shopping: { label: 'Shopping Sprees', emoji: '🛍️' },
-  other: { label: 'Good Vibes', emoji: '🎉' },
+  food: { label: 'Biryani Nights', emoji: 'utensils' },
+  travel: { label: 'Wanderlust', emoji: 'plane' },
+  stay: { label: 'Cozy Stays', emoji: 'building' },
+  entertainment: { label: 'Movie Marathons', emoji: 'film' },
+  transport: { label: 'Cab Rides', emoji: 'car' },
+  shopping: { label: 'Shopping Sprees', emoji: 'bag' },
+  other: { label: 'Good Vibes', emoji: 'party' },
 }
 
 const GROUP_VIBE_BY_PURPOSE = {
-  food: { label: 'Certified Foodie Squad', emoji: '🍗', color: 'var(--color-cat-food)' },
-  entertainment: { label: 'Entertainment Enthusiasts', emoji: '🎬', color: 'var(--color-cat-entertainment)' },
-  transport: { label: 'On-The-Go Crew', emoji: '🚕', color: 'var(--color-cat-transport)' },
-  shopping: { label: 'Retail Therapy Regulars', emoji: '🛍️', color: 'var(--color-cat-shopping)' },
-  other: { label: 'Squad Goals', emoji: '🤝', color: 'var(--color-cat-other)' },
+  food: { label: 'Certified Foodie Squad', emoji: 'utensils', color: 'var(--color-cat-food)' },
+  entertainment: { label: 'Entertainment Enthusiasts', emoji: 'film', color: 'var(--color-cat-entertainment)' },
+  transport: { label: 'On-The-Go Crew', emoji: 'car', color: 'var(--color-cat-transport)' },
+  shopping: { label: 'Retail Therapy Regulars', emoji: 'bag', color: 'var(--color-cat-shopping)' },
+  other: { label: 'Squad Goals', emoji: 'handshake', color: 'var(--color-cat-other)' },
 }
 
 const COMBINING_DIACRITICS_RE = new RegExp(`[${String.fromCharCode(0x0300)}-${String.fromCharCode(0x036f)}]`, 'g')
@@ -175,13 +177,13 @@ export function computeSplitStyles(ledger, members) {
     let tag, emoji
     if (t.equal > t.custom) {
       tag = 'Equal Split Purist'
-      emoji = '⚖️'
+      emoji = 'scale'
     } else if (t.custom > t.equal) {
       tag = 'Custom Split Perfectionist'
-      emoji = '🎯'
+      emoji = 'target'
     } else {
       tag = 'The Flexible One'
-      emoji = '🌀'
+      emoji = 'shuffle'
     }
     styles.push({ member: m.id, name: m.name, tag, emoji })
   }
@@ -223,7 +225,7 @@ export function computeGroupVibe(ledger) {
   if (total === 0) return null
 
   const travelHeavy = ((counts.travel || 0) + (counts.stay || 0)) / total >= 0.4
-  if (travelHeavy) return { label: 'Trip Mode', emoji: '✈️', color: 'var(--color-cat-subs)' }
+  if (travelHeavy) return { label: 'Trip Mode', emoji: 'plane', color: 'var(--color-cat-subs)' }
 
   const top = topEntry(counts)
   return GROUP_VIBE_BY_PURPOSE[top.id] || GROUP_VIBE_BY_PURPOSE.other

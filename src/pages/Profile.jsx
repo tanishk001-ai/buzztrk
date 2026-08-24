@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useAppState } from '../state/AppState'
 import { BackButton, Card, EmptyState, formatDate } from '../components/ui'
+import { IconBadge } from '../components/icons'
 import { computeAchievements } from '../lib/achievements'
 import { computeMoneySense } from '../lib/moneySense'
 
@@ -9,7 +10,7 @@ const FEATURED_COUNT = 3
 function BadgeCard({ badge }) {
   return (
     <Card className="flex items-center gap-3">
-      <span className="text-2xl shrink-0">{badge.emoji}</span>
+      <IconBadge name={badge.emoji} color="var(--color-coin)" size={40} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold truncate">{badge.title}</p>
         <p className="text-xs text-base-400 mt-0.5">{badge.sub ? `${badge.sub} · ` : ''}{formatDate(badge.date)}</p>
@@ -95,7 +96,7 @@ export default function Profile() {
         </div>
 
         {badges.length === 0 ? (
-          <EmptyState emoji="🏅" title="Nothing yet" sub="Keep tracking — your first milestones will show up here." />
+          <EmptyState icon="trophy" title="Nothing yet" sub="Keep tracking — your first milestones will show up here." />
         ) : (
           <div className="space-y-3">
             {(showAllBadges ? badges : featured).map((b) => (

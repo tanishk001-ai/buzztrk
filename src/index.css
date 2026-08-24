@@ -80,7 +80,17 @@ html {
    itself is untouched below the breakpoint. `contain: layout` on .app-frame
    makes it the containing block for every `position: fixed` descendant
    (BottomNav, the Celebration toast, Recap's fullscreen overlay), so they
-   stay pinned to the frame instead of the real browser window. */
+   stay pinned to the frame instead of the real browser window.
+
+   `transform: translateZ(0)` is added alongside `contain: layout` as a
+   second, independent trigger for that same containing-block behavior.
+   Both are spec'd to establish it, but `contain: layout`'s containing-block
+   side effect is the newer of the two mechanisms and has had real gaps in
+   some engines specifically around viewport-size transitions (entering/
+   exiting real OS/browser fullscreen recomputes the containing block from
+   scratch, unlike a plain window resize) — `transform` has done this job
+   reliably since CSS Transforms L1 and isn't affected by that class of bug,
+   so it acts as a fallback rather than relying on containment alone. */
 .app-shell {
   min-height: 100svh;
 }
@@ -112,6 +122,7 @@ html {
     overflow-y: auto;
     overflow-x: hidden;
     contain: layout;
+    transform: translateZ(0);
   }
   .app-frame::-webkit-scrollbar {
     display: none;

@@ -2,11 +2,12 @@ import { useMemo } from 'react'
 import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
 import { Card, Button, EmptyState, formatINR, formatDate } from '../components/ui'
+import { IconBadge } from '../components/icons'
 
 const KIND_META = {
-  emi: { label: 'EMI', emoji: '💳', color: 'var(--color-cat-emi)' },
-  bnpl: { label: 'BNPL', emoji: '🔁', color: 'var(--color-warn)' },
-  owed: { label: 'You owe', emoji: '🤝', color: 'var(--color-cat-transfers)' },
+  emi: { label: 'EMI', emoji: 'card', color: 'var(--color-cat-emi)' },
+  bnpl: { label: 'BNPL', emoji: 'repeat', color: 'var(--color-warn)' },
+  owed: { label: 'You owe', emoji: 'handshake', color: 'var(--color-cat-transfers)' },
 }
 
 export default function Dues() {
@@ -28,7 +29,7 @@ export default function Dues() {
 
       <section className="px-5 mt-6 space-y-3">
         {sorted.length === 0 ? (
-          <EmptyState emoji="🎉" title="Nothing pending" sub="You're all caught up." />
+          <EmptyState icon="check-circle" title="Nothing pending" sub="You're all caught up." />
         ) : (
           sorted.map((d) => {
             const meta = KIND_META[d.kind]
@@ -45,12 +46,7 @@ export default function Dues() {
             return (
               <Card key={d.id}>
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center text-lg shrink-0"
-                    style={{ backgroundColor: `color-mix(in srgb, ${meta.color} 22%, transparent)` }}
-                  >
-                    {meta.emoji}
-                  </div>
+                  <IconBadge name={meta.emoji} color={meta.color} size={44} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-semibold truncate">{d.title}</p>

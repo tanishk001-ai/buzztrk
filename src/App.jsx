@@ -21,6 +21,7 @@ import Personality from './pages/Personality'
 import Profile from './pages/Profile'
 import AddExpense from './pages/AddExpense'
 import CategoryDetail from './pages/CategoryDetail'
+import TransactionHistory from './pages/TransactionHistory'
 import Trends from './pages/Trends'
 import UploadStatement from './pages/UploadStatement'
 import Recap from './pages/Recap'
@@ -58,6 +59,7 @@ export default function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/add-expense" element={<AddExpense />} />
               <Route path="/category/:categoryId" element={<CategoryDetail />} />
+            <Route path="/history" element={<TransactionHistory />} />
               <Route path="/trends" element={<Trends />} />
               <Route path="/upload" element={<UploadStatement />} />
               <Route path="/recap" element={<Recap />} />

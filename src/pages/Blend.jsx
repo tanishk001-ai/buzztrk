@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import Header from '../components/Header'
 import { Card, Avatar, EmptyState, formatINR } from '../components/ui'
+import { Icon } from '../components/icons'
 import { computePairNet, computeOverallNet } from '../lib/blendLedger'
 
 function GroupRow({ group }) {
@@ -41,13 +42,14 @@ export default function Blend() {
 
       <section className="px-5 mt-4">
         <Link to="/blend/new">
-          <div className="bg-cat-groceries text-base-950 rounded-2xl py-3 text-center text-sm font-bold active:scale-[0.97] transition-transform mb-4">
-            ＋ Create group
+          <div className="bg-cat-groceries text-base-950 rounded-2xl py-3 flex items-center justify-center gap-1.5 text-sm font-bold active:scale-[0.97] transition-transform mb-4">
+            <Icon name="plus" size={16} />
+            Create group
           </div>
         </Link>
 
         {blendGroups.length === 0 ? (
-          <EmptyState emoji="🤝" title="No groups yet" sub="Create one to start splitting expenses with friends." />
+          <EmptyState icon="handshake" title="No groups yet" sub="Create one to start splitting expenses with friends." />
         ) : (
           blendGroups.map((g) => <GroupRow key={g.id} group={g} />)
         )}

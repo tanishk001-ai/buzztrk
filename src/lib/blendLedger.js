@@ -24,11 +24,13 @@ export function avatarColorForIndex(i) {
   return AVATAR_PALETTE[i % AVATAR_PALETTE.length]
 }
 
+// `emoji` here is an icon name (see src/components/icons.jsx), not a
+// literal character — same convention as categorize.js.
 export const PAYMENT_METHODS = [
-  { id: 'cash', label: 'Cash', emoji: '💵' },
-  { id: 'upi', label: 'UPI', emoji: '📱' },
-  { id: 'card', label: 'Card', emoji: '💳' },
-  { id: 'other', label: 'Other', emoji: '🔖' },
+  { id: 'cash', label: 'Cash', emoji: 'banknote' },
+  { id: 'upi', label: 'UPI', emoji: 'phone' },
+  { id: 'card', label: 'Card', emoji: 'card' },
+  { id: 'other', label: 'Other', emoji: 'tag' },
 ]
 
 export function paymentMethodMeta(id) {

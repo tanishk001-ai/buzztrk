@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Card, Avatar, EmptyState, formatINR, formatDate } from '../components/ui'
+import { Icon } from '../components/icons'
 import { entryInvolvesMember, entryInvolvesPair, paymentMethodMeta, visibleLedger } from '../lib/blendLedger'
 
 function memberById(members, id) {
@@ -33,7 +34,7 @@ export default function BlendHistory() {
     return (
       <div className="px-5 pt-6">
         <BackButton fallback="/blend" />
-        <EmptyState emoji="🤷" title="Group not found" />
+        <EmptyState icon="search" title="Group not found" />
       </div>
     )
   }
@@ -75,7 +76,7 @@ export default function BlendHistory() {
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState emoji="🔍" title="Nothing here" sub="No activity matches that filter." />
+        <EmptyState icon="search" title="Nothing here" sub="No activity matches that filter." />
       ) : (
         <div className="space-y-3">
           {filtered.map((entry) => {
@@ -90,9 +91,10 @@ export default function BlendHistory() {
                     <Avatar name={payer?.name} color={payer?.avatarColor} size={36} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">{entry.description}</p>
-                      <p className="text-xs text-base-400">
-                        {payer?.name} paid · {formatDate(entry.date)} · {method.emoji} {method.label} ·{' '}
-                        {entry.splitType === 'custom' ? 'custom split' : 'equal split'}
+                      <p className="text-xs text-base-400 flex items-center gap-1 flex-wrap">
+                        {payer?.name} paid · {formatDate(entry.date)} ·
+                        <Icon name={method.emoji} size={11} className="inline-block" />
+                        {method.label} · {entry.splitType === 'custom' ? 'custom split' : 'equal split'}
                       </p>
                     </div>
                     <p className="font-numeral font-bold text-sm">{formatINR(entry.amount)}</p>
@@ -109,8 +111,9 @@ export default function BlendHistory() {
                   </div>
                   {hiddenFromNames.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-base-700 flex items-center justify-between gap-2">
-                      <p className="text-xs" style={{ color: 'var(--color-cat-emi)' }}>
-                        🙈 Hidden from {hiddenFromNames.join(', ')}
+                      <p className="text-xs flex items-center gap-1" style={{ color: 'var(--color-cat-emi)' }}>
+                        <Icon name="eye-off" size={12} />
+                        Hidden from {hiddenFromNames.join(', ')}
                       </p>
                       <button
                         type="button"
@@ -129,7 +132,7 @@ export default function BlendHistory() {
             return (
               <Card key={entry.id} className="bg-base-900">
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">✅</span>
+                  <Icon name="check-circle" size={22} color="var(--color-good)" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">
                       {from?.name} settled up with {to?.name}

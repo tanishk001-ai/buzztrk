@@ -16,6 +16,7 @@ import {
 import { categoryMeta, addCategory } from '../lib/categorize'
 import { MAX_GROUP_MEMBERS, avatarColorForIndex, entryInvolvesMember } from '../lib/blendLedger'
 import { seedTrackedDatesFromHistory, computeStreak, dateKey } from '../lib/streak'
+import { goalProgress } from '../lib/goals'
 
 const AppStateContext = createContext(null)
 
@@ -207,7 +208,7 @@ export function AppStateProvider({ children }) {
       )
       if (!firstSettleUpRef.current) {
         firstSettleUpRef.current = true
-        triggerCelebration('first-settle-up', 'First settle-up in Blend! 🎉', '🎉')
+        triggerCelebration('first-settle-up', 'First settle-up in Blend!', 'party')
       }
     },
     [triggerCelebration],
@@ -215,37 +216,57 @@ export function AppStateProvider({ children }) {
 
   const createPersonalGoal = useCallback((title, target, emoji) => {
     const id = `goal-new-${_goalId++}`
-    setPersonalGoals((prev) => [{ id, title: title.trim(), target, emoji: emoji || '🎯', createdAt: TODAY, contributions: [] }, ...prev])
+    setPersonalGoals((prev) => [{ id, title: title.trim(), target, emoji: emoji || 'target', createdAt: TODAY, contributions: [] }, ...prev])
     return id
   }, [])
 
+  // Fires the same celebration dispatch used elsewhere (streaks, budgets,
+  // first settle-up) the moment a contribution pushes the goal's total from
+  // under-target to at-or-over — computed against the goal's *current*
+  // state before this contribution is applied, so it fires exactly once,
+  // right when the goal is actually reached, not on every later
+  // contribution to an already-finished goal.
   const logPersonalContribution = useCallback(
     (goalId, amount, note = '', source = 'manual') => {
       const id = `contrib-new-${_contribId++}`
+      const goal = personalGoals.find((g) => g.id === goalId)
+      const wasReached = goal ? goalProgress(goal).reached : true
       setPersonalGoals((prev) =>
         prev.map((g) =>
           g.id === goalId ? { ...g, contributions: [{ id, amount, date: TODAY, note, source }, ...g.contributions] } : g,
         ),
       )
       if (source === 'manual') logActivity()
+      if (goal && !wasReached && goalProgress(goal).total + amount >= goal.target) {
+        triggerCelebration('goal-reached', `Goal reached: ${goal.title}!`, goal.emoji || 'target')
+      }
     },
-    [logActivity],
+    [logActivity, personalGoals, triggerCelebration],
   )
 
   const createGroupGoal = useCallback((groupId, title, target, emoji) => {
     const id = `ggoal-new-${_goalId++}`
-    setGroupGoals((prev) => [{ id, groupId, title: title.trim(), target, emoji: emoji || '🎯', createdAt: TODAY, contributions: [] }, ...prev])
+    setGroupGoals((prev) => [{ id, groupId, title: title.trim(), target, emoji: emoji || 'target', createdAt: TODAY, contributions: [] }, ...prev])
     return id
   }, [])
 
-  const logGroupContribution = useCallback((goalId, memberId, amount, note = '') => {
-    const id = `contrib-new-${_contribId++}`
-    setGroupGoals((prev) =>
-      prev.map((g) =>
-        g.id === goalId ? { ...g, contributions: [{ id, memberId, amount, date: TODAY, note }, ...g.contributions] } : g,
-      ),
-    )
-  }, [])
+  // Same reached-crossing check as logPersonalContribution, for group goals.
+  const logGroupContribution = useCallback(
+    (goalId, memberId, amount, note = '') => {
+      const id = `contrib-new-${_contribId++}`
+      const goal = groupGoals.find((g) => g.id === goalId)
+      const wasReached = goal ? goalProgress(goal).reached : true
+      setGroupGoals((prev) =>
+        prev.map((g) =>
+          g.id === goalId ? { ...g, contributions: [{ id, memberId, amount, date: TODAY, note }, ...g.contributions] } : g,
+        ),
+      )
+      if (goal && !wasReached && goalProgress(goal).total + amount >= goal.target) {
+        triggerCelebration('group-goal-reached', `Group goal reached: ${goal.title}!`, goal.emoji || 'target')
+      }
+    },
+    [groupGoals, triggerCelebration],
+  )
 
   const markDuePaid = useCallback((id) => {
     setDues((prev) => prev.filter((d) => d.id !== id))
@@ -345,12 +366,12 @@ export function AppStateProvider({ children }) {
   // from inside a setState callback.
   useEffect(() => {
     if (currentStreak > longestStreak) {
-      triggerCelebration('streak-record', `New personal record — ${currentStreak}-day streak! 🔥`, '🔥')
+      triggerCelebration('streak-record', `New personal record — ${currentStreak}-day streak!`, 'flame')
       setLongestStreak(currentStreak)
     }
     if (currentStreak >= 30 && !fullMonthShownRef.current) {
       fullMonthShownRef.current = true
-      triggerCelebration('full-month', 'First full month of tracking — incredible! 🌟', '🌟')
+      triggerCelebration('full-month', 'First full month of tracking — incredible!', 'star')
     }
   }, [currentStreak, longestStreak, triggerCelebration])
 
@@ -360,7 +381,7 @@ export function AppStateProvider({ children }) {
     const allOnTrack = budgets.every((b) => (monthSpendByCategory[b.category] || 0) <= b.limit)
     if (allOnTrack) {
       allBudgetsOnTrackRef.current = true
-      triggerCelebration('all-budgets-on-track', 'Every category on track this month! 🌟', '🌟')
+      triggerCelebration('all-budgets-on-track', 'Every category on track this month!', 'star')
     }
   }, [budgets, monthSpendByCategory, triggerCelebration])
 

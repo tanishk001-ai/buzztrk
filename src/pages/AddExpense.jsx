@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
-import { BackButton, Button, Card } from '../components/ui'
+import { BackButton, Button, Card, Coin } from '../components/ui'
+import { Icon } from '../components/icons'
 import NewCategoryForm from '../components/NewCategoryForm'
 import { CATEGORIES } from '../lib/categorize'
 
@@ -33,7 +34,9 @@ export default function AddExpense() {
 
       {saved ? (
         <Card className="flex flex-col items-center py-10 animate-coin-pop">
-          <div className="text-4xl mb-2">🪙</div>
+          <div className="mb-2">
+            <Coin size={44} />
+          </div>
           <p className="font-bold">+10 points</p>
           <p className="text-base-400 text-sm">Nice — logged it.</p>
         </Card>
@@ -91,16 +94,17 @@ export default function AddExpense() {
                       color: category === c.id ? c.color : 'var(--color-base-200)',
                     }}
                   >
-                    <span>{c.emoji}</span>
+                    <Icon name={c.emoji} size={15} />
                     {c.label}
                   </button>
                 ))}
                 <button
                   type="button"
                   onClick={() => setCreatingCategory(true)}
-                  className="px-3 py-2 rounded-full text-sm font-semibold border border-dashed border-base-600 text-base-400"
+                  className="px-3 py-2 rounded-full text-sm font-semibold border border-dashed border-base-600 text-base-400 flex items-center gap-1.5"
                 >
-                  ＋ New category
+                  <Icon name="plus" size={15} />
+                  New category
                 </button>
               </div>
             )}

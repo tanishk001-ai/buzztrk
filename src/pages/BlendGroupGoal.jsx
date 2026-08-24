@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAppState } from '../state/AppState'
 import { BackButton, Button, Card, Avatar, EmptyState, SectionTitle, formatINR, formatDate } from '../components/ui'
+import { Icon } from '../components/icons'
 import JourneyPath from '../components/JourneyPath'
 import { goalProgress, goalBreakdownByMember } from '../lib/goals'
 
-const GOAL_EMOJIS = ['🏝️', '🎉', '🏔️', '🎟️', '🏠', '🎯']
+const GOAL_EMOJIS = ['compass', 'party', 'flag', 'ticket', 'home', 'target']
 
 function memberById(members, id) {
   return members.find((m) => m.id === id)
@@ -29,7 +30,7 @@ export default function BlendGroupGoal() {
     return (
       <div className="px-5 pt-6">
         <BackButton fallback="/blend" />
-        <EmptyState emoji="🤷" title="Group not found" />
+        <EmptyState icon="search" title="Group not found" />
       </div>
     )
   }
@@ -82,13 +83,14 @@ export default function BlendGroupGoal() {
                     type="button"
                     key={em}
                     onClick={() => setEmoji(em)}
-                    className="w-11 h-11 rounded-full text-lg flex items-center justify-center border transition-colors"
+                    className="w-11 h-11 rounded-full flex items-center justify-center border transition-colors"
                     style={{
                       borderColor: emoji === em ? 'var(--color-cat-groceries)' : 'var(--color-base-700)',
                       backgroundColor: emoji === em ? 'color-mix(in srgb, var(--color-cat-groceries) 20%, transparent)' : 'transparent',
+                      color: emoji === em ? 'var(--color-cat-groceries)' : 'var(--color-base-200)',
                     }}
                   >
-                    {em}
+                    <Icon name={em} size={18} />
                   </button>
                 ))}
               </div>
@@ -119,14 +121,23 @@ export default function BlendGroupGoal() {
     <div className="px-5 pt-6 pb-10">
       <div className="flex items-start gap-3 mb-1">
         <BackButton fallback={`/blend/${group.id}`} className="mt-0.5" />
-        <h1 className="font-display text-2xl">
-          {goal.emoji} {goal.title}
+        <h1 className="font-display text-2xl flex items-center gap-2">
+          <Icon name={goal.emoji} size={22} />
+          {goal.title}
         </h1>
       </div>
-      <p className="text-base-400 text-sm mb-4">{reached ? 'Goal reached! 🎉' : `${formatINR(remaining)} left to go`}</p>
+      <p className="text-base-400 text-sm mb-4 flex items-center gap-1">
+        {reached ? (
+          <>
+            Goal reached! <Icon name="party" size={14} color="var(--color-income)" />
+          </>
+        ) : (
+          `${formatINR(remaining)} left to go`
+        )}
+      </p>
 
       <Card className="mb-4">
-        <JourneyPath pct={pct} emoji="👥" color="var(--color-income)" destinationEmoji={goal.emoji} />
+        <JourneyPath pct={pct} emoji="users" color="var(--color-income)" destinationEmoji={goal.emoji} />
         <div className="flex items-baseline justify-between mt-2">
           <p className="font-numeral text-2xl font-bold" style={{ color: 'var(--color-income)' }}>
             {formatINR(total)}

@@ -3,6 +3,7 @@
 // linearly interpolated along a fixed set of waypoints, proportional to
 // cumulative distance walked (not just waypoint index), so movement speed
 // reads evenly along the whole path regardless of how the waypoints bend.
+import { Icon } from './icons'
 
 const WAYPOINTS = [
   [16, 118],
@@ -40,7 +41,7 @@ function pointAtProgress(points, t) {
   return points[points.length - 1]
 }
 
-export default function JourneyPath({ pct, emoji = '🚶', color = 'var(--color-good)', destinationEmoji = '🏁' }) {
+export default function JourneyPath({ pct, emoji = 'footprints', color = 'var(--color-good)', destinationEmoji = 'flag' }) {
   const t = Math.max(0, Math.min(100, pct)) / 100
   const [mx, my] = pointAtProgress(WAYPOINTS, t)
   const pathD = WAYPOINTS.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p[0]} ${p[1]}`).join(' ')
@@ -62,14 +63,14 @@ export default function JourneyPath({ pct, emoji = '🚶', color = 'var(--color-
         strokeDashoffset={100 - t * 100}
         style={{ transition: 'stroke-dashoffset 600ms ease-out' }}
       />
-      <text x={endX} y={endY - 12} textAnchor="middle" fontSize="18">
-        {destinationEmoji}
-      </text>
+      <g transform={`translate(${endX - 9}, ${endY - 30})`}>
+        <Icon name={destinationEmoji} size={18} color="var(--color-base-50)" />
+      </g>
       <g style={{ transition: 'transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1)' }} transform={`translate(${mx}, ${my})`}>
         <circle r="13" fill="var(--color-base-900)" stroke={color} strokeWidth="2.5" />
-        <text textAnchor="middle" dominantBaseline="central" fontSize="14">
-          {emoji}
-        </text>
+        <g transform="translate(-8, -8)">
+          <Icon name={emoji} size={16} color={color} />
+        </g>
       </g>
     </svg>
   )
