@@ -1,5 +1,7 @@
 # BuzzTrk
 
+**Live: [buzztrk.vercel.app](https://buzztrk.vercel.app/#/)**
+
 A personal finance visibility prototype for 15–25 year-olds in India handling
 money for the first time — pocket money or an early salary. Built as a PM
 portfolio artifact: Vite + React + Tailwind v4, mock data only, no backend,
@@ -43,5 +45,6 @@ and milestone moments.
 
 ## Deploy
 
-Same pattern as this author's other prototypes: push to GitHub, import into
-Vercel. `vercel.json` rewrites all routes to `index.html` for the SPA.
+Live at [buzztrk.vercel.app](https://buzztrk.vercel.app/#/) — same pattern as
+this author's other prototypes: push to GitHub, import into Vercel.
+`vercel.json` rewrites all routes to `index.html` for the SPA.
