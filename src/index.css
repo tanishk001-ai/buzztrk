@@ -77,20 +77,33 @@ html {
 }
 
 /* Phone-frame presentation for desktop/wide viewports only — the mobile UI
-   itself is untouched below the breakpoint. `contain: layout` on .app-frame
-   makes it the containing block for every `position: fixed` descendant
-   (BottomNav, the Celebration toast, Recap's fullscreen overlay), so they
-   stay pinned to the frame instead of the real browser window.
+   itself is untouched below the breakpoint.
 
-   `transform: translateZ(0)` is added alongside `contain: layout` as a
-   second, independent trigger for that same containing-block behavior.
-   Both are spec'd to establish it, but `contain: layout`'s containing-block
-   side effect is the newer of the two mechanisms and has had real gaps in
-   some engines specifically around viewport-size transitions (entering/
-   exiting real OS/browser fullscreen recomputes the containing block from
-   scratch, unlike a plain window resize) — `transform` has done this job
-   reliably since CSS Transforms L1 and isn't affected by that class of bug,
-   so it acts as a fallback rather than relying on containment alone. */
+   .app-frame and .app-scroll deliberately split two jobs that used to sit
+   on one element:
+     - .app-frame establishes the containing block (`contain: layout` +
+       `transform` as a redundant second trigger) for every `position:
+       fixed` descendant (BottomNav, the Celebration toast, Recap's
+       fullscreen overlay), so they're pinned to the frame instead of the
+       real browser window. It does NOT scroll itself (`overflow: hidden`).
+     - .app-scroll is the actual scroll container for page content.
+
+   Combining both roles on one element was the root cause of a real bug:
+   per the CSS containing-block spec, a `position: fixed` element is laid
+   out against its containing block's box and is unaffected by the scroll
+   offset of any ancestor that ISN'T that containing block — but when the
+   containing block itself is also the element being scrolled, browsers
+   carry fixed descendants along with that scroll (the same mechanism that
+   makes `position: fixed` immune to scrolling breaks down once the fixed
+   element's own containing block is the thing doing the scrolling).
+   Concretely, BottomNav rendered correctly at rest but slid up the screen
+   and overlapped list content as soon as the frame was scrolled, moving in
+   exact lockstep with the scroll offset — confirmed by inspecting
+   BottomNav's getBoundingClientRect() before and after scrolling .app-frame
+   in devtools. Moving the scrolling to a separate, non-containing-block
+   child (.app-scroll) fixes it: BottomNav/Celebration/Recap's overlay stay
+   siblings of .app-scroll, resolve their position against the static
+   .app-frame box, and no longer move when .app-scroll's content scrolls. */
 .app-shell {
   min-height: 100svh;
 }
@@ -119,15 +132,19 @@ html {
     border-radius: 2.75rem;
     border: 1px solid var(--color-base-700);
     box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
     contain: layout;
     transform: translateZ(0);
   }
-  .app-frame::-webkit-scrollbar {
+  .app-scroll {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .app-scroll::-webkit-scrollbar {
     display: none;
   }
-  .app-frame {
+  .app-scroll {
     scrollbar-width: none;
   }
 }

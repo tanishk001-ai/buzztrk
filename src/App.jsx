@@ -37,34 +37,36 @@ export default function App() {
     <AppStateProvider>
       <HashRouter>
         <div className="app-shell">
-          <div className="app-frame max-w-md mx-auto relative pb-28 bg-base-950">
+          <div className="app-frame max-w-md mx-auto relative bg-base-950">
             <CelebrationHost />
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/budgets" element={<Budgets />} />
-              <Route path="/dues" element={<Dues />} />
-              <Route path="/blend" element={<Blend />} />
-              <Route path="/blend/new" element={<BlendCreateGroup />} />
-              <Route path="/blend/:groupId" element={<BlendGroup />} />
-              <Route path="/blend/:groupId/settings" element={<BlendGroupSettings />} />
-              <Route path="/blend/:groupId/add-expense" element={<BlendAddExpense />} />
-              <Route path="/blend/:groupId/settle-up" element={<BlendSettleUp />} />
-              <Route path="/blend/:groupId/history" element={<BlendHistory />} />
-              <Route path="/blend/:groupId/goal" element={<BlendGroupGoal />} />
-              <Route path="/rewards" element={<Rewards />} />
-              <Route path="/points-history" element={<PointsHistory />} />
-              <Route path="/goals" element={<Goals />} />
-              <Route path="/goals/:goalId" element={<GoalDetail />} />
-              <Route path="/personality" element={<Personality />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/add-expense" element={<AddExpense />} />
-              <Route path="/category/:categoryId" element={<CategoryDetail />} />
-            <Route path="/history" element={<TransactionHistory />} />
-              <Route path="/trends" element={<Trends />} />
-              <Route path="/upload" element={<UploadStatement />} />
-              <Route path="/recap" element={<Recap />} />
-              <Route path="/advice" element={<Advice />} />
-            </Routes>
+            <div className="app-scroll pb-28">
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/budgets" element={<Budgets />} />
+                <Route path="/dues" element={<Dues />} />
+                <Route path="/blend" element={<Blend />} />
+                <Route path="/blend/new" element={<BlendCreateGroup />} />
+                <Route path="/blend/:groupId" element={<BlendGroup />} />
+                <Route path="/blend/:groupId/settings" element={<BlendGroupSettings />} />
+                <Route path="/blend/:groupId/add-expense" element={<BlendAddExpense />} />
+                <Route path="/blend/:groupId/settle-up" element={<BlendSettleUp />} />
+                <Route path="/blend/:groupId/history" element={<BlendHistory />} />
+                <Route path="/blend/:groupId/goal" element={<BlendGroupGoal />} />
+                <Route path="/rewards" element={<Rewards />} />
+                <Route path="/points-history" element={<PointsHistory />} />
+                <Route path="/goals" element={<Goals />} />
+                <Route path="/goals/:goalId" element={<GoalDetail />} />
+                <Route path="/personality" element={<Personality />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/add-expense" element={<AddExpense />} />
+                <Route path="/category/:categoryId" element={<CategoryDetail />} />
+                <Route path="/history" element={<TransactionHistory />} />
+                <Route path="/trends" element={<Trends />} />
+                <Route path="/upload" element={<UploadStatement />} />
+                <Route path="/recap" element={<Recap />} />
+                <Route path="/advice" element={<Advice />} />
+              </Routes>
+            </div>
             <BottomNav />
           </div>
         </div>
